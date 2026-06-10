@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createJob = createJob;
 exports.listJobs = listJobs;
+exports.getJobStats = getJobStats;
 exports.getJob = getJob;
 exports.updateJobStatus = updateJobStatus;
 const data_source_1 = require("../db/data-source");
@@ -103,6 +104,29 @@ async function listJobs(options = {}) {
     }
     const jobs = await query.getMany();
     return enrichJobDtos(jobs);
+}
+async function getJobStats() {
+    const dataSource = await (0, data_source_1.getDataSource)();
+    const rows = await dataSource
+        .getRepository(Job_1.Job)
+        .createQueryBuilder("job")
+        .select("job.status", "status")
+        .addSelect("COUNT(job.id)", "count")
+        .groupBy("job.status")
+        .getRawMany();
+    const stats = {
+        total: 0,
+        queued: 0,
+        running: 0,
+        done: 0,
+        failed: 0,
+    };
+    for (const row of rows) {
+        const count = Number(row.count);
+        stats[row.status] = count;
+        stats.total += count;
+    }
+    return stats;
 }
 async function getJob(id) {
     const dataSource = await (0, data_source_1.getDataSource)();
