@@ -1,11 +1,16 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import {
+  DASHBOARD_PANEL_HEIGHT_CLASS,
+  DASHBOARD_SCROLL_AREA_CLASS,
+} from "@/lib/dashboard-layout";
 import type { User, UserRole } from "@/lib/types";
 
 interface UsersSectionProps {
   initialUsers: User[];
   variant?: "default" | "compact";
+  fixedHeight?: boolean;
 }
 
 const ROLE_OPTIONS: UserRole[] = ["admin", "user"];
@@ -18,6 +23,7 @@ const ROLE_BADGE_CLASSES: Record<UserRole, string> = {
 export function UsersSection({
   initialUsers,
   variant = "default",
+  fixedHeight = false,
 }: UsersSectionProps) {
   const [users, setUsers] = useState(initialUsers);
   const [name, setName] = useState("");
@@ -30,6 +36,7 @@ export function UsersSection({
   const [showForm, setShowForm] = useState(false);
 
   const isCompact = variant === "compact";
+  const useFixedPanelHeight = isCompact && fixedHeight;
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -123,14 +130,18 @@ export function UsersSection({
     <section
       className={
         isCompact
-          ? "dashboard-panel flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-indigo-200/50 bg-white/95"
+          ? `dashboard-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-indigo-200/50 bg-white/95 ${
+              useFixedPanelHeight
+                ? DASHBOARD_PANEL_HEIGHT_CLASS
+                : "h-full"
+            }`
           : "card-glow overflow-hidden rounded-2xl border border-indigo-200/60 bg-white/90 p-8 backdrop-blur-sm"
       }
     >
       <div
         className={
           isCompact
-            ? "flex items-center justify-between gap-3 border-b border-indigo-100/80 px-4 py-3"
+            ? "flex shrink-0 items-center justify-between gap-3 border-b border-indigo-100/80 px-4 py-3"
             : "mb-6"
         }
       >
@@ -172,11 +183,21 @@ export function UsersSection({
         ) : null}
       </div>
 
-      <div className={isCompact ? "flex min-h-0 flex-1 flex-col px-4 py-3" : ""}>
+      <div
+        className={
+          isCompact
+            ? "flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-3"
+            : ""
+        }
+      >
         {(!isCompact || showForm) && (
           <form
             onSubmit={handleCreate}
-            className={isCompact ? "mb-3 space-y-2" : "mb-6 space-y-3"}
+            className={
+              isCompact
+                ? `shrink-0 space-y-2 ${useFixedPanelHeight ? "mb-2" : "mb-3"}`
+                : "mb-6 space-y-3"
+            }
           >
             <div
               className={
@@ -261,6 +282,15 @@ export function UsersSection({
           </p>
         ) : null}
 
+        <div
+          className={
+            useFixedPanelHeight
+              ? DASHBOARD_SCROLL_AREA_CLASS
+              : isCompact
+                ? "max-h-72 overflow-y-auto pr-0.5"
+                : ""
+          }
+        >
         {users.length === 0 ? (
           <div
             className={
@@ -287,9 +317,7 @@ export function UsersSection({
         ) : (
           <ul
             className={
-              isCompact
-                ? "max-h-72 space-y-1 overflow-y-auto pr-0.5"
-                : "space-y-2"
+              isCompact ? "space-y-1" : "space-y-2"
             }
           >
             {users.map((user) => (
@@ -344,6 +372,7 @@ export function UsersSection({
             ))}
           </ul>
         )}
+        </div>
       </div>
     </section>
   );

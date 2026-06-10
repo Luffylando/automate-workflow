@@ -1,5 +1,9 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  DASHBOARD_PANEL_HEIGHT_CLASS,
+  DASHBOARD_SCROLL_AREA_CLASS,
+} from "@/lib/dashboard-layout";
 import { UsersSection } from "./UsersSection";
 
 afterEach(() => {
@@ -32,6 +36,33 @@ describe("UsersSection", () => {
     render(<UsersSection initialUsers={[]} />);
 
     expect(screen.getByText("No users yet.")).toBeInTheDocument();
+  });
+
+  it("uses a fixed-height scrollable panel on the dashboard", () => {
+    const { container } = render(
+      <UsersSection
+        variant="compact"
+        fixedHeight
+        initialUsers={[
+          {
+            id: "1",
+            name: "Alex Rivera",
+            email: "alex@example.com",
+            role: "user",
+            createdAt: "2026-01-01T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    const panel = container.querySelector("section");
+    const scrollArea = panel?.querySelector("div.overflow-y-auto");
+
+    expect(panel?.className).toContain(DASHBOARD_PANEL_HEIGHT_CLASS);
+    expect(scrollArea).not.toBeNull();
+    for (const className of DASHBOARD_SCROLL_AREA_CLASS.split(" ")) {
+      expect(scrollArea?.className).toContain(className);
+    }
   });
 
   it("renders compact variant with member count", () => {
