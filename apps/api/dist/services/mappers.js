@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toTodoDto = toTodoDto;
+exports.toUserDto = toUserDto;
 exports.toJobDto = toJobDto;
 function toTodoDto(todo) {
     return {
@@ -9,6 +10,15 @@ function toTodoDto(todo) {
         completed: todo.completed,
         createdAt: todo.createdAt.toISOString(),
         updatedAt: todo.updatedAt.toISOString(),
+    };
+}
+function toUserDto(user) {
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt.toISOString(),
     };
 }
 function toJobDto(job) {

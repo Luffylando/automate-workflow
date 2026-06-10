@@ -14,6 +14,7 @@ const admin_prompts_1 = require("./routes/admin-prompts");
 const auth_1 = require("./routes/auth");
 const jobs_1 = require("./routes/jobs");
 const todos_1 = require("./routes/todos");
+const users_1 = require("./routes/users");
 const admins_1 = require("./services/admins");
 async function start() {
     await (0, data_source_1.getDataSource)();
@@ -23,6 +24,7 @@ async function start() {
     (0, admin_auth_1.registerAdminAuth)(fastify);
     await fastify.register(auth_1.authRoutes);
     await fastify.register(todos_1.todosRoutes);
+    await fastify.register(users_1.usersRoutes);
     await fastify.register(jobs_1.jobsRoutes);
     await fastify.register(admin_prompts_1.adminPromptsRoutes);
     fastify.get("/health", async () => ({ ok: true }));

@@ -8,10 +8,11 @@ const config_1 = require("../config");
 const AdminUser_1 = require("./entities/AdminUser");
 const Job_1 = require("./entities/Job");
 const Todo_1 = require("./entities/Todo");
+const User_1 = require("./entities/User");
 exports.AppDataSource = new typeorm_1.DataSource({
     type: "postgres",
     url: config_1.config.databaseUrl,
-    entities: [Todo_1.Todo, Job_1.Job, AdminUser_1.AdminUser],
+    entities: [Todo_1.Todo, Job_1.Job, AdminUser_1.AdminUser, User_1.User],
     synchronize: true,
     logging: false,
 });

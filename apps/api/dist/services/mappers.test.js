@@ -19,6 +19,22 @@ const mappers_1 = require("./mappers");
             updatedAt: "2026-06-10T10:05:00.000Z",
         });
     });
+    (0, vitest_1.it)("maps a user entity to dto", () => {
+        const user = {
+            id: "user-1",
+            name: "Alex Rivera",
+            email: "alex@example.com",
+            role: "admin",
+            createdAt: new Date("2026-06-10T10:00:00.000Z"),
+        };
+        (0, vitest_1.expect)((0, mappers_1.toUserDto)(user)).toEqual({
+            id: "user-1",
+            name: "Alex Rivera",
+            email: "alex@example.com",
+            role: "admin",
+            createdAt: "2026-06-10T10:00:00.000Z",
+        });
+    });
     (0, vitest_1.it)("maps a job entity to dto", () => {
         const job = {
             id: "job-1",
