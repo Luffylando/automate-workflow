@@ -72,3 +72,14 @@ body {
     0 8px 24px rgb(139 92 246 / 0.12),
     0 0 0 1px rgb(196 181 253 / 0.35);
 }
+
+.dashboard-panel {
+  box-shadow:
+    0 1px 2px rgb(99 102 241 / 0.06),
+    0 4px 12px rgb(139 92 246 / 0.08),
+    0 0 0 1px rgb(196 181 253 / 0.25);
+}
+
+.dashboard-stat {
+  box-shadow: 0 1px 2px rgb(99 102 241 / 0.05);
+}

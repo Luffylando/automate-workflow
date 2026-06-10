@@ -33,6 +33,32 @@ describe("TodosSection", () => {
     expect(screen.getByText("No todos yet.")).toBeInTheDocument();
   });
 
+  it("renders compact variant with open and done counts", () => {
+    render(
+      <TodosSection
+        variant="compact"
+        initialTodos={[
+          {
+            id: "1",
+            title: "Open task",
+            completed: false,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+          {
+            id: "2",
+            title: "Done task",
+            completed: true,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("1 open · 1 done")).toBeInTheDocument();
+  });
+
   it("creates a todo through the API", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
