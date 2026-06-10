@@ -3,36 +3,53 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f5f3ff;
-  --foreground: #1e1b4b;
-  --foreground-muted: #4338ca;
-  --foreground-subtle: #818cf8;
-  --border: rgb(199 210 254 / 0.55);
-  --border-muted: rgb(224 231 255 / 0.8);
+  color-scheme: light;
+
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --foreground-muted: #475569;
+  --foreground-subtle: #94a3b8;
+  --border: rgb(148 163 184 / 0.35);
+  --border-muted: rgb(148 163 184 / 0.2);
   --brand-from: #6366f1;
   --brand-via: #8b5cf6;
   --brand-to: #ec4899;
   --surface: #ffffff;
-  --surface-muted: #faf5ff;
-  --input-bg: rgb(238 242 255 / 0.45);
+  --surface-muted: #f1f5f9;
+  --input-bg: #ffffff;
   --shadow-indigo: rgb(99 102 241 / 0.08);
-  --shadow-violet: rgb(139 92 246 / 0.12);
-  --shadow-ring: rgb(196 181 253 / 0.35);
+  --shadow-violet: rgb(139 92 246 / 0.1);
+  --shadow-ring: rgb(148 163 184 / 0.25);
+  --page-gradient:
+    radial-gradient(circle at top left, rgb(224 231 255 / 0.85), transparent 45%),
+    radial-gradient(circle at top right, rgb(252 231 243 / 0.75), transparent 40%),
+    radial-gradient(circle at bottom, rgb(204 251 241 / 0.55), transparent 50%),
+    linear-gradient(to bottom, #f8fafc, #eef2ff 55%, #fdf2f8);
 }
 
-.dark {
-  --background: #0f172a;
-  --foreground: #e2e8f0;
-  --foreground-muted: #a5b4fc;
-  --foreground-subtle: #6366f1;
-  --border: rgb(99 102 241 / 0.25);
-  --border-muted: rgb(99 102 241 / 0.15);
-  --surface: #1e293b;
-  --surface-muted: #312e81;
-  --input-bg: rgb(30 41 59 / 0.85);
-  --shadow-indigo: rgb(15 23 42 / 0.5);
-  --shadow-violet: rgb(49 46 129 / 0.35);
-  --shadow-ring: rgb(99 102 241 / 0.2);
+html.dark {
+  color-scheme: dark;
+
+  --background: #000000;
+  --foreground: #f8fafc;
+  --foreground-muted: #cbd5e1;
+  --foreground-subtle: #64748b;
+  --border: rgb(148 163 184 / 0.2);
+  --border-muted: rgb(148 163 184 / 0.12);
+  --brand-from: #818cf8;
+  --brand-via: #a78bfa;
+  --brand-to: #f472b6;
+  --surface: #111111;
+  --surface-muted: #1a1a1a;
+  --input-bg: #0a0a0a;
+  --shadow-indigo: rgb(0 0 0 / 0.55);
+  --shadow-violet: rgb(0 0 0 / 0.45);
+  --shadow-ring: rgb(148 163 184 / 0.12);
+  --page-gradient:
+    radial-gradient(circle at top left, rgb(49 46 129 / 0.35), transparent 45%),
+    radial-gradient(circle at top right, rgb(88 28 135 / 0.25), transparent 40%),
+    radial-gradient(circle at bottom, rgb(15 118 110 / 0.15), transparent 50%),
+    linear-gradient(to bottom, #000000, #0a0a0a 55%, #000000);
 }
 
 @theme inline {
@@ -59,19 +76,8 @@ body {
 }
 
 .page-gradient {
-  background:
-    radial-gradient(circle at top left, rgb(224 231 255 / 0.9), transparent 45%),
-    radial-gradient(circle at top right, rgb(252 231 243 / 0.85), transparent 40%),
-    radial-gradient(circle at bottom, rgb(204 251 241 / 0.7), transparent 50%),
-    linear-gradient(to bottom, #f5f3ff, #ecfeff 55%, #fdf2f8);
-}
-
-.dark .page-gradient {
-  background:
-    radial-gradient(circle at top left, rgb(49 46 129 / 0.45), transparent 45%),
-    radial-gradient(circle at top right, rgb(88 28 135 / 0.35), transparent 40%),
-    radial-gradient(circle at bottom, rgb(15 118 110 / 0.2), transparent 50%),
-    linear-gradient(to bottom, #0f172a, #1e1b4b 55%, #0f172a);
+  background: var(--page-gradient);
+  color: var(--foreground);
 }
 
 .brand-gradient-text {

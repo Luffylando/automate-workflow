@@ -14,15 +14,13 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-muted transition hover:border-brand-via/50 hover:bg-surface-muted hover:text-foreground ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-foreground transition hover:border-brand-via/50 hover:bg-surface-muted ${className}`}
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-      title={isDark ? "Light mode" : "Dark mode"}
+      aria-pressed={isDark}
+      title={isDark ? "Switch to light theme" : "Switch to dark theme"}
     >
-      {isDark ? (
-        <span aria-hidden="true">☀️</span>
-      ) : (
-        <span aria-hidden="true">🌙</span>
-      )}
+      <span aria-hidden="true">{isDark ? "☀️" : "🌙"}</span>
+      <span>{isDark ? "Light" : "Dark"}</span>
     </button>
   );
 }

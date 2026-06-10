@@ -82,8 +82,8 @@ export function AdminPromptPanel() {
   return (
     <div className="fixed right-6 bottom-6 z-50 flex flex-col items-end gap-3">
       {isOpen ? (
-        <section className="flex max-h-[min(32rem,calc(100vh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-indigo-50 via-violet-50 to-fuchsia-50 shadow-xl shadow-fuchsia-200/40 dark:from-slate-900 dark:via-indigo-950 dark:to-fuchsia-950 dark:shadow-black/40">
-          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border bg-surface/50 px-4 py-3 backdrop-blur-sm dark:bg-surface/70">
+        <section className="flex max-h-[min(32rem,calc(100vh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-xl shadow-black/10 dark:shadow-black/50">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border bg-surface-muted px-4 py-3 backdrop-blur-sm">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-to">
                 Admin
