@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import type { AdminSession, User } from "./types";
+import type { AdminSession, Todo } from "./types";
 import { getApiUrl } from "./api-url";
 
 export async function getSession(): Promise<AdminSession | null> {
@@ -21,15 +21,15 @@ export async function getSession(): Promise<AdminSession | null> {
   return { role: "admin", sub: data.sub ?? "admin" };
 }
 
-export async function listUsers(): Promise<User[]> {
-  const response = await fetch(`${getApiUrl()}/api/users`, {
+export async function listTodos(): Promise<Todo[]> {
+  const response = await fetch(`${getApiUrl()}/api/todos`, {
     cache: "no-store",
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch users");
+    throw new Error("Failed to fetch todos");
   }
 
-  const data = (await response.json()) as { users: User[] };
-  return data.users;
+  const data = (await response.json()) as { todos: Todo[] };
+  return data.todos;
 }
