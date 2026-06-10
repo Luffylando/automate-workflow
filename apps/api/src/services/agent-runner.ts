@@ -3,6 +3,7 @@ import {
   extractPrUrl,
   waitForRun,
 } from "./cursor-api";
+import { markPullRequestReady } from "./github";
 import { getJob, updateJobStatus } from "./jobs";
 
 export async function processJob(jobId: string): Promise<void> {
@@ -24,10 +25,22 @@ export async function processJob(jobId: string): Promise<void> {
     const run = await waitForRun(agentId, runId);
 
     if (run.status === "FINISHED") {
+      const prUrl = extractPrUrl(run);
+      if (prUrl) {
+        try {
+          await markPullRequestReady(prUrl);
+        } catch (error) {
+          console.warn(
+            "Failed to mark pull request ready:",
+            error instanceof Error ? error.message : error,
+          );
+        }
+      }
+
       await updateJobStatus(jobId, "done", {
         agentId,
         agentRunId: runId,
-        prUrl: extractPrUrl(run),
+        prUrl,
       });
       return;
     }

@@ -55,41 +55,110 @@ jobs:
       - name: Dev smoke test
         run: bash scripts/ci-smoke-dev.sh
 
+  mark-ready:
+    name: Mark PR ready
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Mark draft pull request as ready for review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const { owner, repo } = context.repo;
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
+
+            if (!pr.draft) {
+              core.info(`PR #${prNumber} is already ready for review.`);
+              return;
+            }
+
+            await github.rest.pulls.update({
+              owner,
+              repo,
+              pull_number: prNumber,
+              draft: false,
+            });
+
+            core.info(`PR #${prNumber} marked ready for review.`);
+
   auto-merge:
     name: Auto-merge
-    needs: verify
+    needs: [verify, mark-ready]
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-
       - name: Merge pull request when checks pass
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          set -euo pipefail
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const { owner, repo } = context.repo;
 
-          state="$(gh pr view "$PR_NUMBER" --json state,mergeable,mergeStateStatus --jq '.state + " " + (.mergeable // "UNKNOWN") + " " + .mergeStateStatus')"
-          echo "PR #$PR_NUMBER state: $state"
+            const { data: pr } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: prNumber,
+            });
 
-          if [ "$(gh pr view "$PR_NUMBER" --json state --jq .state)" != "OPEN" ]; then
-            echo "PR is not open. Skipping auto-merge."
-            exit 0
-          fi
+            core.info(
+              `PR #${prNumber}: state=${pr.state}, mergeable=${pr.mergeable}, mergeable_state=${pr.mergeable_state}`,
+            );
 
-          mergeable="$(gh pr view "$PR_NUMBER" --json mergeable --jq .mergeable)"
-          if [ "$mergeable" != "MERGEABLE" ]; then
-            echo "PR is not mergeable ($mergeable). Skipping auto-merge."
-            exit 0
-          fi
+            if (pr.state !== "open") {
+              core.info("PR is not open. Skipping auto-merge.");
+              return;
+            }
 
-          if gh pr merge "$PR_NUMBER" --squash --delete-branch; then
-            echo "PR #$PR_NUMBER merged automatically."
-          else
-            echo "Auto-merge was not possible (branch protection or permissions). PR left open for manual merge."
-            exit 0
-          fi
+            if (pr.mergeable === false) {
+              core.info(
+                `PR is not mergeable (${pr.mergeable_state}). Skipping auto-merge.`,
+              );
+              return;
+            }
+
+            try {
+              await github.rest.pulls.merge({
+                owner,
+                repo,
+                pull_number: prNumber,
+                merge_method: "squash",
+              });
+              core.info(`PR #${prNumber} merged automatically.`);
+            } catch (error) {
+              core.info(
+                `Auto-merge was not possible: ${error instanceof Error ? error.message : String(error)}`,
+              );
+              return;
+            }
+
+            const headRef = pr.head.ref;
+            const sameRepo =
+              pr.head.repo?.full_name === `${owner}/${repo}`;
+
+            if (!headRef || !sameRepo) {
+              return;
+            }
+
+            try {
+              await github.rest.git.deleteRef({
+                owner,
+                repo,
+                ref: `heads/${headRef}`,
+              });
+              core.info(`Deleted branch ${headRef}.`);
+            } catch (error) {
+              core.info(
+                `Branch delete skipped: ${error instanceof Error ? error.message : String(error)}`,
+              );
+            }

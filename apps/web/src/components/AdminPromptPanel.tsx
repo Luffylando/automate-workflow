@@ -189,7 +189,7 @@ export function AdminPromptPanel() {
                   <p className="mt-3 text-xs text-zinc-500">
                     {activeJob.status === "queued"
                       ? "Starting Cursor agent..."
-                      : "Agent is editing the repo and opening a pull request. This can take several minutes."}
+                      : "Agent is editing the repo and opening a pull request ready for review. This can take several minutes."}
                   </p>
                 ) : null}
                 {activeJob.status === "done" && !activeJob.prUrl ? (
