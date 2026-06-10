@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { AdminPromptPanel } from "@/components/AdminPromptPanel";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
+import { UsersList } from "@/components/UsersList";
 import { getSession } from "@/lib/auth";
+import { listUsers } from "@/lib/users";
 
 export default async function Home() {
-  const session = await getSession();
+  const [session, users] = await Promise.all([getSession(), listUsers()]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
@@ -26,15 +28,7 @@ export default async function Home() {
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-16">
-        <section className="rounded-2xl border border-dashed border-zinc-300 bg-white p-12 text-center">
-          <h2 className="text-2xl font-semibold text-zinc-900">
-            Blank home page
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-zinc-600">
-            This is the public starting point. Future prompts will evolve this
-            page and the rest of the codebase.
-          </p>
-        </section>
+        <UsersList users={users} />
 
         {session ? <AdminPromptPanel /> : null}
       </main>

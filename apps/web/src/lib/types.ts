@@ -12,6 +12,13 @@ export interface Job {
   error?: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
 export interface AdminSession {
   role: "admin";
   sub: string;
