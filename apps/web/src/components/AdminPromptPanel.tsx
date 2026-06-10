@@ -47,7 +47,10 @@ export function AdminPromptPanel() {
       const response = await fetch("/api/admin/prompts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({
+          prompt,
+          metadata: { source: "prompt-console" },
+        }),
       });
 
       const data = (await response.json()) as {

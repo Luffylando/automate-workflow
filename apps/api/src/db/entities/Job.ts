@@ -30,6 +30,15 @@ export class Job {
   @Column({ type: "text", nullable: true })
   error!: string | null;
 
+  @Column({ type: "varchar", nullable: true })
+  submittedById!: string | null;
+
+  @Column({ type: "varchar", nullable: true })
+  submittedByEmail!: string | null;
+
+  @Column({ type: "jsonb", nullable: true })
+  metadata!: Record<string, unknown> | null;
+
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
 

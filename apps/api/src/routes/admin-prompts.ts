@@ -4,10 +4,16 @@ import { processJob } from "../services/agent-runner";
 import { createJob } from "../services/jobs";
 import { checkRateLimit } from "../services/rate-limit";
 
+const MAX_METADATA_BYTES = 4096;
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export async function adminPromptsRoutes(
   fastify: FastifyInstance,
 ): Promise<void> {
-  fastify.post<{ Body: { prompt?: string } }>(
+  fastify.post<{ Body: { prompt?: string; metadata?: unknown } }>(
     "/api/admin/prompts",
     { preHandler: requireAdmin },
     async (request, reply) => {
@@ -29,6 +35,22 @@ export async function adminPromptsRoutes(
             .send({ error: "Prompt must be 4000 characters or fewer" });
         }
 
+        let metadata: Record<string, unknown> | undefined;
+        if (request.body.metadata !== undefined) {
+          if (!isPlainObject(request.body.metadata)) {
+            return reply.status(400).send({ error: "Metadata must be an object" });
+          }
+
+          const serialized = JSON.stringify(request.body.metadata);
+          if (serialized.length > MAX_METADATA_BYTES) {
+            return reply
+              .status(400)
+              .send({ error: "Metadata must be 4096 bytes or fewer" });
+          }
+
+          metadata = request.body.metadata;
+        }
+
         const rateLimit = checkRateLimit(session.sub);
         if (!rateLimit.allowed) {
           return reply.status(429).send({
@@ -36,7 +58,15 @@ export async function adminPromptsRoutes(
           });
         }
 
-        const job = await createJob(prompt);
+        const job = await createJob({
+          prompt,
+          submittedById: session.sub,
+          submittedByEmail: session.email,
+          metadata: {
+            ...metadata,
+            source: metadata?.source ?? "admin-prompt",
+          },
+        });
 
         setImmediate(() => {
           void processJob(job.id);

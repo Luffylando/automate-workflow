@@ -60,6 +60,9 @@ const mappers_1 = require("./mappers");
             agentId: null,
             agentRunId: null,
             error: null,
+            submittedById: "admin-1",
+            submittedByEmail: "admin@example.com",
+            metadata: { source: "prompt-console" },
             createdAt: new Date("2026-06-10T10:00:00.000Z"),
             updatedAt: new Date("2026-06-10T10:05:00.000Z"),
         };
@@ -69,6 +72,9 @@ const mappers_1 = require("./mappers");
             status: "queued",
             createdAt: "2026-06-10T10:00:00.000Z",
             updatedAt: "2026-06-10T10:05:00.000Z",
+            submittedById: "admin-1",
+            submittedByEmail: "admin@example.com",
+            metadata: { source: "prompt-console" },
         });
     });
 });

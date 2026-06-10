@@ -19,6 +19,9 @@ let Job = class Job {
     agentId;
     agentRunId;
     error;
+    submittedById;
+    submittedByEmail;
+    metadata;
     createdAt;
     updatedAt;
 };
@@ -51,6 +54,18 @@ __decorate([
     (0, typeorm_1.Column)({ type: "text", nullable: true }),
     __metadata("design:type", Object)
 ], Job.prototype, "error", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", nullable: true }),
+    __metadata("design:type", Object)
+], Job.prototype, "submittedById", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", nullable: true }),
+    __metadata("design:type", Object)
+], Job.prototype, "submittedByEmail", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "jsonb", nullable: true }),
+    __metadata("design:type", Object)
+], Job.prototype, "metadata", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: "timestamptz" }),
     __metadata("design:type", Date)
