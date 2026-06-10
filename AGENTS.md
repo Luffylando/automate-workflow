@@ -30,6 +30,7 @@ automate-workflow/
 8. Add or update tests when behavior changes meaningfully.
 9. Run `pnpm verify` from the repo root before finishing (build, test, and dev smoke).
 10. CI runs the same checks on push/PR via `.github/workflows/ci.yml`.
+11. PRs that pass CI are auto-merged to `main` when mergeable (squash + delete branch).
 
 ## Backend features
 

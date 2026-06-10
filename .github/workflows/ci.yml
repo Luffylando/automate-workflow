@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -51,3 +54,40 @@ jobs:
 
       - name: Dev smoke test
         run: bash scripts/ci-smoke-dev.sh
+
+  auto-merge:
+    name: Auto-merge
+    needs: verify
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Merge pull request when checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          state="$(gh pr view "$PR_NUMBER" --json state,mergeable,mergeStateStatus --jq '.state + " " + (.mergeable // "UNKNOWN") + " " + .mergeStateStatus')"
+          echo "PR #$PR_NUMBER state: $state"
+
+          if [ "$(gh pr view "$PR_NUMBER" --json state --jq .state)" != "OPEN" ]; then
+            echo "PR is not open. Skipping auto-merge."
+            exit 0
+          fi
+
+          mergeable="$(gh pr view "$PR_NUMBER" --json mergeable --jq .mergeable)"
+          if [ "$mergeable" != "MERGEABLE" ]; then
+            echo "PR is not mergeable ($mergeable). Skipping auto-merge."
+            exit 0
+          fi
+
+          if gh pr merge "$PR_NUMBER" --squash --delete-branch; then
+            echo "PR #$PR_NUMBER merged automatically."
+          else
+            echo "Auto-merge was not possible (branch protection or permissions). PR left open for manual merge."
+            exit 0
+          fi

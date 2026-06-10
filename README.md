@@ -87,3 +87,23 @@ Default local connection:
 ```
 postgresql://automate:automate@localhost:5432/automate_workflow
 ```
+
+## CI and auto-merge
+
+Every push and pull request to `main` runs the same checks as local `pnpm verify` (build, test, dev smoke).
+
+When a pull request passes CI, GitHub Actions **auto-merges** it with squash (and deletes the branch) when the PR is mergeable. If there are conflicts or branch protection blocks it, the PR stays open for manual merge.
+
+Before pushing:
+
+```bash
+pnpm verify
+```
+
+Optional pre-push hook:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+For auto-merge to work, enable **Settings → Actions → General → Workflow permissions → Read and write permissions** on the repository.
