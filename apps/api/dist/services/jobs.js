@@ -9,6 +9,18 @@ const Job_1 = require("../db/entities/Job");
 const mappers_1 = require("./mappers");
 const DEFAULT_LIST_LIMIT = 50;
 const MAX_LIST_LIMIT = 100;
+function parseUtcDateRange(date) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return null;
+    }
+    const start = new Date(`${date}T00:00:00.000Z`);
+    if (Number.isNaN(start.getTime())) {
+        return null;
+    }
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 1);
+    return { start, end };
+}
 async function createJob(input) {
     const dataSource = await (0, data_source_1.getDataSource)();
     const repo = dataSource.getRepository(Job_1.Job);
@@ -30,11 +42,28 @@ async function listJobs(options = {}) {
     const dataSource = await (0, data_source_1.getDataSource)();
     const limit = Math.min(Math.max(options.limit ?? DEFAULT_LIST_LIMIT, 1), MAX_LIST_LIMIT);
     const offset = Math.max(options.offset ?? 0, 0);
-    const jobs = await dataSource.getRepository(Job_1.Job).find({
-        order: { createdAt: "DESC" },
-        take: limit,
-        skip: offset,
-    });
+    const query = dataSource
+        .getRepository(Job_1.Job)
+        .createQueryBuilder("job")
+        .orderBy("job.createdAt", "DESC")
+        .take(limit)
+        .skip(offset);
+    const promptSearch = options.prompt?.trim();
+    if (promptSearch) {
+        query.andWhere("job.prompt ILIKE :prompt", {
+            prompt: `%${promptSearch}%`,
+        });
+    }
+    if (options.date) {
+        const range = parseUtcDateRange(options.date);
+        if (range) {
+            query.andWhere("job.createdAt >= :start AND job.createdAt < :end", {
+                start: range.start,
+                end: range.end,
+            });
+        }
+    }
+    const jobs = await query.getMany();
     return jobs.map(mappers_1.toJobDto);
 }
 async function getJob(id) {

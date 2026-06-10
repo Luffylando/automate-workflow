@@ -8,11 +8,18 @@ export async function jobsRoutes(fastify: FastifyInstance): Promise<void> {
     { preHandler: requireAdmin },
     async (request, reply) => {
       try {
-        const query = request.query as { limit?: string; offset?: string };
+        const query = request.query as {
+          limit?: string;
+          offset?: string;
+          prompt?: string;
+          date?: string;
+        };
         const limit = query.limit ? Number.parseInt(query.limit, 10) : undefined;
         const offset = query.offset
           ? Number.parseInt(query.offset, 10)
           : undefined;
+        const prompt = query.prompt?.trim() || undefined;
+        const date = query.date?.trim() || undefined;
 
         if (limit !== undefined && Number.isNaN(limit)) {
           return reply.status(400).send({ error: "Invalid limit" });
@@ -22,7 +29,11 @@ export async function jobsRoutes(fastify: FastifyInstance): Promise<void> {
           return reply.status(400).send({ error: "Invalid offset" });
         }
 
-        const jobs = await listJobs({ limit, offset });
+        if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          return reply.status(400).send({ error: "Invalid date" });
+        }
+
+        const jobs = await listJobs({ limit, offset, prompt, date });
         return { jobs };
       } catch (error) {
         const message =

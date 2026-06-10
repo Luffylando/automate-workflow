@@ -4,7 +4,15 @@ import { createJob, listJobs } from "./jobs";
 
 const mockSave = vi.fn();
 const mockCreate = vi.fn();
-const mockFind = vi.fn();
+const mockGetMany = vi.fn();
+const mockQueryBuilder = {
+  orderBy: vi.fn(),
+  take: vi.fn(),
+  skip: vi.fn(),
+  andWhere: vi.fn(),
+  getMany: mockGetMany,
+};
+const mockCreateQueryBuilder = vi.fn();
 const mockGetRepository = vi.fn();
 
 vi.mock("../db/data-source", () => ({
@@ -16,10 +24,15 @@ vi.mock("../db/data-source", () => ({
 describe("jobs service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockQueryBuilder.orderBy.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.take.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.skip.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.andWhere.mockReturnValue(mockQueryBuilder);
+    mockCreateQueryBuilder.mockReturnValue(mockQueryBuilder);
     mockGetRepository.mockReturnValue({
       create: mockCreate,
       save: mockSave,
-      find: mockFind,
+      createQueryBuilder: mockCreateQueryBuilder,
     });
   });
 
@@ -108,17 +121,43 @@ describe("jobs service", () => {
       },
     ] as Job[];
 
-    mockFind.mockResolvedValue(jobs);
+    mockGetMany.mockResolvedValue(jobs);
 
     const result = await listJobs({ limit: 10, offset: 0 });
 
-    expect(mockFind).toHaveBeenCalledWith({
-      order: { createdAt: "DESC" },
-      take: 10,
-      skip: 0,
-    });
+    expect(mockCreateQueryBuilder).toHaveBeenCalledWith("job");
+    expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+      "job.createdAt",
+      "DESC",
+    );
+    expect(mockQueryBuilder.take).toHaveBeenCalledWith(10);
+    expect(mockQueryBuilder.skip).toHaveBeenCalledWith(0);
+    expect(mockQueryBuilder.andWhere).not.toHaveBeenCalled();
     expect(result).toHaveLength(2);
     expect(result[0]?.id).toBe("job-2");
     expect(result[1]?.error).toBe("Agent failed");
+  });
+
+  it("filters jobs by prompt name and date", async () => {
+    mockGetMany.mockResolvedValue([]);
+
+    await listJobs({
+      prompt: "history",
+      date: "2026-06-10",
+    });
+
+    expect(mockQueryBuilder.andWhere).toHaveBeenNthCalledWith(
+      1,
+      "job.prompt ILIKE :prompt",
+      { prompt: "%history%" },
+    );
+    expect(mockQueryBuilder.andWhere).toHaveBeenNthCalledWith(
+      2,
+      "job.createdAt >= :start AND job.createdAt < :end",
+      {
+        start: new Date("2026-06-10T00:00:00.000Z"),
+        end: new Date("2026-06-11T00:00:00.000Z"),
+      },
+    );
   });
 });

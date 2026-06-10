@@ -57,9 +57,11 @@ jobs:
 
   mark-ready:
     name: Mark PR ready
+    needs: verify
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
+      contents: write
       pull-requests: write
     steps:
       - name: Mark draft pull request as ready for review
@@ -67,6 +69,7 @@ jobs:
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
+            const pullRequestId = context.payload.pull_request.node_id;
             const { owner, repo } = context.repo;
 
             const { data: pr } = await github.rest.pulls.get({
@@ -80,18 +83,35 @@ jobs:
               return;
             }
 
-            await github.rest.pulls.update({
+            await github.graphql(
+              `mutation($pullRequestId: ID!) {
+                markPullRequestReadyForReview(input: { pullRequestId: $pullRequestId }) {
+                  pullRequest {
+                    isDraft
+                  }
+                }
+              }`,
+              { pullRequestId },
+            );
+
+            const { data: updated } = await github.rest.pulls.get({
               owner,
               repo,
               pull_number: prNumber,
-              draft: false,
             });
+
+            if (updated.draft) {
+              core.setFailed(
+                `PR #${prNumber} is still a draft after markPullRequestReadyForReview.`,
+              );
+              return;
+            }
 
             core.info(`PR #${prNumber} marked ready for review.`);
 
   auto-merge:
     name: Auto-merge
-    needs: [verify, mark-ready]
+    needs: mark-ready
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -112,17 +132,24 @@ jobs:
             });
 
             core.info(
-              `PR #${prNumber}: state=${pr.state}, mergeable=${pr.mergeable}, mergeable_state=${pr.mergeable_state}`,
+              `PR #${prNumber}: state=${pr.state}, draft=${pr.draft}, mergeable=${pr.mergeable}, mergeable_state=${pr.mergeable_state}`,
             );
 
             if (pr.state !== "open") {
-              core.info("PR is not open. Skipping auto-merge.");
+              core.setFailed("PR is not open. Cannot auto-merge.");
+              return;
+            }
+
+            if (pr.draft) {
+              core.setFailed(
+                `PR #${prNumber} is still a draft. Mark PR ready must complete first.`,
+              );
               return;
             }
 
             if (pr.mergeable === false) {
-              core.info(
-                `PR is not mergeable (${pr.mergeable_state}). Skipping auto-merge.`,
+              core.setFailed(
+                `PR is not mergeable (${pr.mergeable_state}). Cannot auto-merge.`,
               );
               return;
             }
@@ -136,8 +163,8 @@ jobs:
               });
               core.info(`PR #${prNumber} merged automatically.`);
             } catch (error) {
-              core.info(
-                `Auto-merge was not possible: ${error instanceof Error ? error.message : String(error)}`,
+              core.setFailed(
+                `Auto-merge failed: ${error instanceof Error ? error.message : String(error)}`,
               );
               return;
             }

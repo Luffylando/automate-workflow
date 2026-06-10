@@ -16,6 +16,25 @@ export interface CreateJobInput {
 export interface ListJobsOptions {
   limit?: number;
   offset?: number;
+  prompt?: string;
+  date?: string;
+}
+
+function parseUtcDateRange(
+  date: string,
+): { start: Date; end: Date } | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return null;
+  }
+
+  const start = new Date(`${date}T00:00:00.000Z`);
+  if (Number.isNaN(start.getTime())) {
+    return null;
+  }
+
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 1);
+  return { start, end };
 }
 
 export async function createJob(input: CreateJobInput): Promise<JobDto> {
@@ -45,11 +64,31 @@ export async function listJobs(
     MAX_LIST_LIMIT,
   );
   const offset = Math.max(options.offset ?? 0, 0);
-  const jobs = await dataSource.getRepository(Job).find({
-    order: { createdAt: "DESC" },
-    take: limit,
-    skip: offset,
-  });
+  const query = dataSource
+    .getRepository(Job)
+    .createQueryBuilder("job")
+    .orderBy("job.createdAt", "DESC")
+    .take(limit)
+    .skip(offset);
+
+  const promptSearch = options.prompt?.trim();
+  if (promptSearch) {
+    query.andWhere("job.prompt ILIKE :prompt", {
+      prompt: `%${promptSearch}%`,
+    });
+  }
+
+  if (options.date) {
+    const range = parseUtcDateRange(options.date);
+    if (range) {
+      query.andWhere("job.createdAt >= :start AND job.createdAt < :end", {
+        start: range.start,
+        end: range.end,
+      });
+    }
+  }
+
+  const jobs = await query.getMany();
   return jobs.map(toJobDto);
 }
 
