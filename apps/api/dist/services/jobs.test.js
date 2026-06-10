@@ -6,12 +6,17 @@ const submitter_1 = require("./submitter");
 const mockSave = vitest_1.vi.fn();
 const mockCreate = vitest_1.vi.fn();
 const mockGetMany = vitest_1.vi.fn();
+const mockGetRawMany = vitest_1.vi.fn();
 const mockQueryBuilder = {
     orderBy: vitest_1.vi.fn(),
     take: vitest_1.vi.fn(),
     skip: vitest_1.vi.fn(),
     andWhere: vitest_1.vi.fn(),
+    select: vitest_1.vi.fn(),
+    addSelect: vitest_1.vi.fn(),
+    groupBy: vitest_1.vi.fn(),
     getMany: mockGetMany,
+    getRawMany: mockGetRawMany,
 };
 const mockCreateQueryBuilder = vitest_1.vi.fn();
 const mockGetRepository = vitest_1.vi.fn();
@@ -31,6 +36,9 @@ vitest_1.vi.mock("./submitter", () => ({
         mockQueryBuilder.take.mockReturnValue(mockQueryBuilder);
         mockQueryBuilder.skip.mockReturnValue(mockQueryBuilder);
         mockQueryBuilder.andWhere.mockReturnValue(mockQueryBuilder);
+        mockQueryBuilder.select.mockReturnValue(mockQueryBuilder);
+        mockQueryBuilder.addSelect.mockReturnValue(mockQueryBuilder);
+        mockQueryBuilder.groupBy.mockReturnValue(mockQueryBuilder);
         mockCreateQueryBuilder.mockReturnValue(mockQueryBuilder);
         mockGetRepository.mockReturnValue({
             create: mockCreate,
@@ -153,6 +161,26 @@ vitest_1.vi.mock("./submitter", () => ({
         const result = await (0, jobs_1.listJobs)();
         (0, vitest_1.expect)(submitter_1.lookupSubmitterEmailsByIds).toHaveBeenCalledWith(["admin-1"]);
         (0, vitest_1.expect)(result[0]?.submittedByEmail).toBe("legacy-admin@example.com");
+    });
+    (0, vitest_1.it)("aggregates job counts by status", async () => {
+        mockGetRawMany.mockResolvedValue([
+            { status: "done", count: "12" },
+            { status: "running", count: "2" },
+            { status: "queued", count: "1" },
+            { status: "failed", count: "3" },
+        ]);
+        const result = await (0, jobs_1.getJobStats)();
+        (0, vitest_1.expect)(mockCreateQueryBuilder).toHaveBeenCalledWith("job");
+        (0, vitest_1.expect)(mockQueryBuilder.select).toHaveBeenCalledWith("job.status", "status");
+        (0, vitest_1.expect)(mockQueryBuilder.addSelect).toHaveBeenCalledWith("COUNT(job.id)", "count");
+        (0, vitest_1.expect)(mockQueryBuilder.groupBy).toHaveBeenCalledWith("job.status");
+        (0, vitest_1.expect)(result).toEqual({
+            total: 18,
+            queued: 1,
+            running: 2,
+            done: 12,
+            failed: 3,
+        });
     });
     (0, vitest_1.it)("filters jobs by prompt name and date", async () => {
         mockGetMany.mockResolvedValue([]);

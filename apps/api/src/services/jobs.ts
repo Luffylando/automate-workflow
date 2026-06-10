@@ -1,6 +1,6 @@
 import { getDataSource } from "../db/data-source";
 import { Job } from "../db/entities/Job";
-import type { JobDto, JobStatus } from "../types";
+import type { JobDto, JobStatsDto, JobStatus } from "../types";
 import { toJobDto } from "./mappers";
 import {
   lookupSubmitterEmailsByIds,
@@ -145,6 +145,33 @@ export async function listJobs(
 
   const jobs = await query.getMany();
   return enrichJobDtos(jobs);
+}
+
+export async function getJobStats(): Promise<JobStatsDto> {
+  const dataSource = await getDataSource();
+  const rows = await dataSource
+    .getRepository(Job)
+    .createQueryBuilder("job")
+    .select("job.status", "status")
+    .addSelect("COUNT(job.id)", "count")
+    .groupBy("job.status")
+    .getRawMany<{ status: JobStatus; count: string }>();
+
+  const stats: JobStatsDto = {
+    total: 0,
+    queued: 0,
+    running: 0,
+    done: 0,
+    failed: 0,
+  };
+
+  for (const row of rows) {
+    const count = Number(row.count);
+    stats[row.status] = count;
+    stats.total += count;
+  }
+
+  return stats;
 }
 
 export async function getJob(id: string): Promise<JobDto | null> {

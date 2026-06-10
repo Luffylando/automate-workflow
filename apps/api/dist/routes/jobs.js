@@ -30,6 +30,16 @@ async function jobsRoutes(fastify) {
             return reply.status(500).send({ error: message });
         }
     });
+    fastify.get("/api/jobs/stats", { preHandler: admin_auth_1.requireAdmin }, async (_request, reply) => {
+        try {
+            const stats = await (0, jobs_1.getJobStats)();
+            return { stats };
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to fetch job stats";
+            return reply.status(500).send({ error: message });
+        }
+    });
     fastify.get("/api/jobs/:id", { preHandler: admin_auth_1.requireAdmin }, async (request, reply) => {
         try {
             const job = await (0, jobs_1.getJob)(request.params.id);

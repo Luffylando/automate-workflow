@@ -7,6 +7,7 @@ import { TodosSection } from "@/components/TodosSection";
 import { UsersSection } from "@/components/UsersSection";
 import {
   getAdminSession,
+  getJobStats,
   getSession,
   listJobs,
   listTodos,
@@ -24,10 +25,14 @@ export default async function DashboardPage() {
   const todos = await listTodos();
   const users = adminSession ? await listUsers() : [];
   const jobs = adminSession ? await listJobs() : [];
+  const jobStats = adminSession ? await getJobStats() : null;
 
   const totalTodos = todos.length;
   const completedTodos = todos.filter((todo) => todo.completed).length;
   const pendingTodos = totalTodos - completedTodos;
+  const activeJobs = jobStats
+    ? jobStats.queued + jobStats.running
+    : 0;
 
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
@@ -44,6 +49,15 @@ export default async function DashboardPage() {
             <DashboardStatCard label="Done %" value={totalTodos ? Math.round((completedTodos / totalTodos) * 100) : 0} accent="fuchsia" />
           )}
         </div>
+
+        {adminSession && jobStats ? (
+          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            <DashboardStatCard label="Total prompts" value={jobStats.total} accent="indigo" />
+            <DashboardStatCard label="Active" value={activeJobs} accent="amber" />
+            <DashboardStatCard label="Done" value={jobStats.done} accent="emerald" />
+            <DashboardStatCard label="Failed" value={jobStats.failed} accent="fuchsia" />
+          </div>
+        ) : null}
 
         <div
           className={
