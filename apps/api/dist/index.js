@@ -14,8 +14,10 @@ const admin_prompts_1 = require("./routes/admin-prompts");
 const auth_1 = require("./routes/auth");
 const jobs_1 = require("./routes/jobs");
 const todos_1 = require("./routes/todos");
+const admins_1 = require("./services/admins");
 async function start() {
     await (0, data_source_1.getDataSource)();
+    await (0, admins_1.ensureDefaultAdmin)();
     const fastify = (0, fastify_1.default)({ logger: true });
     await fastify.register(cookie_1.default);
     (0, admin_auth_1.registerAdminAuth)(fastify);

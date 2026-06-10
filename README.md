@@ -44,7 +44,8 @@ Open [http://localhost:3000](http://localhost:3000), sign in at `/login`, and su
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | Postgres connection string |
-| `ADMIN_PASSWORD` | Yes | Admin sign-in password |
+| `ADMIN_EMAIL` | No | Default admin email (defaults to `admin@localhost`) |
+| `ADMIN_PASSWORD` | Yes | Default admin password (seeded on first startup) |
 | `SESSION_SECRET` | Yes | JWT signing secret (32+ chars) |
 | `CURSOR_API_KEY` | For agents | From [Cursor Dashboard → Integrations](https://cursor.com/dashboard/integrations) |
 | `GITHUB_REPO_URL` | For agents | Full GitHub URL |

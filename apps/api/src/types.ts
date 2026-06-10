@@ -23,4 +23,5 @@ export interface JobDto {
 export interface AdminSession {
   role: "admin";
   sub: string;
+  email: string;
 }

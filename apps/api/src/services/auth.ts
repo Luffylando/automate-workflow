@@ -9,8 +9,11 @@ function getSessionSecret(): Uint8Array {
   return new TextEncoder().encode(config.sessionSecret);
 }
 
-export async function createSessionToken(): Promise<string> {
-  return new SignJWT({ role: "admin", sub: "admin" })
+export async function createSessionToken(
+  adminId: string,
+  email: string,
+): Promise<string> {
+  return new SignJWT({ role: "admin", sub: adminId, email })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_MAX_AGE_SECONDS}s`)
@@ -22,15 +25,26 @@ export async function verifySessionToken(
 ): Promise<AdminSession | null> {
   try {
     const { payload } = await jwtVerify(token, getSessionSecret());
-    if (payload.role !== "admin") {
+    if (payload.role !== "admin" || typeof payload.sub !== "string") {
       return null;
     }
-    return { role: "admin", sub: String(payload.sub ?? "admin") };
+
+    const email =
+      typeof payload.email === "string" ? payload.email : "admin@localhost";
+
+    return { role: "admin", sub: payload.sub, email };
   } catch {
     return null;
   }
 }
 
-export function verifyAdminPassword(password: string): boolean {
-  return password === config.adminPassword;
+export function extractBearerToken(
+  authorizationHeader?: string,
+): string | null {
+  if (!authorizationHeader?.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const token = authorizationHeader.slice("Bearer ".length).trim();
+  return token || null;
 }

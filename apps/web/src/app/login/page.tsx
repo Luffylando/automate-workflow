@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("admin@localhost");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -19,7 +20,7 @@ export default function LoginPage() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = (await response.json()) as { error?: string };
@@ -56,6 +57,23 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label
+              htmlFor="email"
+              className="block text-sm font-medium text-indigo-900"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-indigo-200 bg-indigo-50/40 px-4 py-3 text-sm text-indigo-950 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-300/50"
+              required
+            />
+          </div>
+          <div>
+            <label
               htmlFor="password"
               className="block text-sm font-medium text-indigo-900"
             >
@@ -64,6 +82,7 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               className="mt-1 w-full rounded-xl border border-indigo-200 bg-indigo-50/40 px-4 py-3 text-sm text-indigo-950 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-300/50"

@@ -13,12 +13,20 @@ export async function getSession(): Promise<AdminSession | null> {
     return null;
   }
 
-  const data = (await response.json()) as { admin?: boolean; sub?: string };
+  const data = (await response.json()) as {
+    admin?: boolean;
+    sub?: string;
+    email?: string;
+  };
   if (!data.admin) {
     return null;
   }
 
-  return { role: "admin", sub: data.sub ?? "admin" };
+  return {
+    role: "admin",
+    sub: data.sub ?? "admin",
+    email: data.email ?? "admin@localhost",
+  };
 }
 
 export async function listTodos(): Promise<Todo[]> {
