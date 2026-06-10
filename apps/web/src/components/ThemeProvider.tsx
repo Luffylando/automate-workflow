@@ -32,14 +32,9 @@ function getInitialThemeState(): {
   theme: Theme;
   resolvedTheme: ResolvedTheme;
 } {
-  if (typeof window === "undefined") {
-    return { theme: "system", resolvedTheme: "light" };
-  }
-
-  const theme = readStoredTheme();
-  const resolvedTheme = readResolvedThemeFromDom();
-
-  return { theme, resolvedTheme };
+  // Keep SSR and the first client render identical. ThemeScript applies the
+  // stored theme to <html> before hydration; sync React state in useLayoutEffect.
+  return { theme: "system", resolvedTheme: "light" };
 }
 
 function useHtmlThemeSync(resolvedTheme: ResolvedTheme) {
@@ -87,9 +82,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   }, [resolvedTheme, setTheme]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const storedTheme = readStoredTheme();
-    const resolved = resolveTheme(storedTheme);
+    const resolved = readResolvedThemeFromDom();
     setThemeState(storedTheme);
     setResolvedTheme(resolved);
     applyThemeClass(resolved);
