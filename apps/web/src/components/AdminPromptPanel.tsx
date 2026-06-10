@@ -2,17 +2,15 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { JobStatusBadge } from "@/components/JobStatusBadge";
-import type { Job, JobStatus } from "@/lib/types";
+import {
+  BTN_SECONDARY_CLASS,
+  INPUT_DEFAULT_CLASS,
+  JOB_PANEL_CLASSES,
+  TEXT_HEADING_CLASS,
+} from "@/lib/theme-classes";
+import type { Job } from "@/lib/types";
 
 const POLL_INTERVAL_MS = 2000;
-
-const JOB_PANEL_STYLES: Record<JobStatus, string> = {
-  queued:
-    "border-amber-200 bg-amber-50/50 ring-1 ring-amber-100",
-  running: "border-blue-300 bg-blue-50/60 ring-2 ring-blue-200",
-  done: "border-green-300 bg-green-50/60 ring-2 ring-green-200",
-  failed: "border-red-300 bg-red-50/60 ring-2 ring-red-200",
-};
 
 export function AdminPromptPanel() {
   const [isOpen, setIsOpen] = useState(false);
@@ -84,20 +82,20 @@ export function AdminPromptPanel() {
   return (
     <div className="fixed right-6 bottom-6 z-50 flex flex-col items-end gap-3">
       {isOpen ? (
-        <section className="flex max-h-[min(32rem,calc(100vh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-fuchsia-200/70 bg-gradient-to-br from-indigo-50 via-violet-50 to-fuchsia-50 shadow-xl shadow-fuchsia-200/40">
-          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-fuchsia-200/60 bg-white/50 px-4 py-3 backdrop-blur-sm">
+        <section className="flex max-h-[min(32rem,calc(100vh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-indigo-50 via-violet-50 to-fuchsia-50 shadow-xl shadow-fuchsia-200/40 dark:from-slate-900 dark:via-indigo-950 dark:to-fuchsia-950 dark:shadow-black/40">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border bg-surface/50 px-4 py-3 backdrop-blur-sm dark:bg-surface/70">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-fuchsia-700">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-to">
                 Admin
               </p>
-              <h2 className="text-base font-semibold text-indigo-950">
+              <h2 className={`text-base ${TEXT_HEADING_CLASS}`}>
                 Prompt console
               </h2>
             </div>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="rounded-lg border border-fuchsia-200 bg-white px-3 py-1.5 text-sm font-medium text-fuchsia-700 hover:bg-fuchsia-50"
+              className={`px-3 py-1.5 text-sm ${BTN_SECONDARY_CLASS}`}
               aria-label="Close prompt console"
             >
               Close
@@ -107,7 +105,7 @@ export function AdminPromptPanel() {
           <div className="overflow-y-auto p-4">
             <form onSubmit={handleSubmit} className="space-y-3">
               <label
-                className="block text-sm font-medium text-zinc-700"
+                className={`block text-sm font-medium ${TEXT_HEADING_CLASS}`}
                 htmlFor="prompt"
               >
                 Describe the change you want
@@ -118,10 +116,12 @@ export function AdminPromptPanel() {
                 onChange={(event) => setPrompt(event.target.value)}
                 rows={4}
                 placeholder="Example: Add a filter bar to the todos list."
-                className="w-full rounded-xl border border-indigo-200 bg-white px-4 py-3 text-sm text-indigo-950 outline-none focus:border-fuchsia-300 focus:ring-2 focus:ring-fuchsia-300/50"
+                className={`w-full px-4 py-3 ${INPUT_DEFAULT_CLASS}`}
                 required
               />
-              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              {error ? (
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              ) : null}
               <button
                 type="submit"
                 disabled={submitting || !prompt.trim()}
@@ -133,42 +133,42 @@ export function AdminPromptPanel() {
 
             {activeJob ? (
               <div
-                className={`mt-4 rounded-xl border p-4 shadow-sm ${JOB_PANEL_STYLES[activeJob.status]}`}
+                className={`mt-4 rounded-xl border p-4 shadow-sm ${JOB_PANEL_CLASSES[activeJob.status]}`}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                     Latest job
                   </p>
                   <JobStatusBadge status={activeJob.status} />
                 </div>
                 <dl className="mt-3 space-y-2 text-sm">
                   <div className="flex justify-between gap-4">
-                    <dt className="text-zinc-500">Job ID</dt>
-                    <dd className="truncate font-mono text-xs text-zinc-700">
+                    <dt className="text-subtle">Job ID</dt>
+                    <dd className="truncate font-mono text-xs text-muted">
                       {activeJob.id}
                     </dd>
                   </div>
                   {activeJob.agentRunId ? (
                     <div className="flex justify-between gap-4">
-                      <dt className="text-zinc-500">Agent run</dt>
-                      <dd className="truncate font-mono text-xs text-zinc-700">
+                      <dt className="text-subtle">Agent run</dt>
+                      <dd className="truncate font-mono text-xs text-muted">
                         {activeJob.agentRunId}
                       </dd>
                     </div>
                   ) : null}
                   <div>
-                    <dt className="text-zinc-500">Prompt</dt>
-                    <dd className="mt-1 whitespace-pre-wrap text-zinc-800">
+                    <dt className="text-subtle">Prompt</dt>
+                    <dd className="mt-1 whitespace-pre-wrap text-foreground">
                       {activeJob.prompt}
                     </dd>
                   </div>
                   {activeJob.prUrl ? (
                     <div>
-                      <dt className="text-zinc-500">Pull request</dt>
+                      <dt className="text-subtle">Pull request</dt>
                       <dd className="mt-1">
                         <a
                           href={activeJob.prUrl}
-                          className="font-medium text-fuchsia-700 underline decoration-fuchsia-300 underline-offset-2"
+                          className="font-medium text-brand-to underline decoration-brand-to/40 underline-offset-2"
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -179,21 +179,23 @@ export function AdminPromptPanel() {
                   ) : null}
                   {activeJob.error ? (
                     <div>
-                      <dt className="text-zinc-500">Error</dt>
-                      <dd className="mt-1 text-red-600">{activeJob.error}</dd>
+                      <dt className="text-subtle">Error</dt>
+                      <dd className="mt-1 text-red-600 dark:text-red-400">
+                        {activeJob.error}
+                      </dd>
                     </div>
                   ) : null}
                 </dl>
                 {activeJob.status === "queued" ||
                 activeJob.status === "running" ? (
-                  <p className="mt-3 text-xs text-zinc-500">
+                  <p className="mt-3 text-xs text-subtle">
                     {activeJob.status === "queued"
                       ? "Starting Cursor agent..."
                       : "Agent is editing the repo and opening a pull request ready for review. This can take several minutes."}
                   </p>
                 ) : null}
                 {activeJob.status === "done" && !activeJob.prUrl ? (
-                  <p className="mt-3 text-xs text-zinc-500">
+                  <p className="mt-3 text-xs text-subtle">
                     Agent finished. Check the repository for changes if no PR
                     link appears.
                   </p>

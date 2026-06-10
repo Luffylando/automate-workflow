@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { TodosSection } from "@/components/TodosSection";
+import {
+  BTN_SECONDARY_LG_CLASS,
+  HEADER_BAR_CLASS,
+  TEXT_HEADING_CLASS,
+  TEXT_MUTED_CLASS,
+} from "@/lib/theme-classes";
 import { getSession, listTodos } from "@/lib/server-api";
 
 export default async function Home() {
@@ -9,35 +16,32 @@ export default async function Home() {
 
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
-      <header className="border-b border-indigo-200/60 bg-white/80 backdrop-blur-sm">
+      <header className={HEADER_BAR_CLASS}>
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
           <div>
             <p className="text-sm font-semibold tracking-wide brand-gradient-text">
               Automate Workflow
             </p>
-            <h1 className="text-xl font-semibold text-indigo-950">Home</h1>
+            <h1 className={`text-xl ${TEXT_HEADING_CLASS}`}>Home</h1>
           </div>
-          {session ? (
-            <div className="flex items-center gap-3">
-              <span className="hidden text-sm text-indigo-700 sm:inline">
-                {session.email}
-              </span>
-              <Link
-                href="/dashboard"
-                className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:border-violet-200 hover:bg-violet-50"
-              >
-                Dashboard
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {session ? (
+              <>
+                <span className={`hidden text-sm sm:inline ${TEXT_MUTED_CLASS}`}>
+                  {session.email}
+                </span>
+                <Link href="/dashboard" className={BTN_SECONDARY_LG_CLASS}>
+                  Dashboard
+                </Link>
+                <LogoutButton />
+              </>
+            ) : (
+              <Link href="/login" className={BTN_SECONDARY_LG_CLASS}>
+                Admin sign in
               </Link>
-              <LogoutButton />
-            </div>
-          ) : (
-            <Link
-              href="/login"
-              className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
-            >
-              Admin sign in
-            </Link>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
