@@ -23,4 +23,5 @@ export interface Todo {
 export interface AdminSession {
   role: "admin";
   sub: string;
+  email: string;
 }

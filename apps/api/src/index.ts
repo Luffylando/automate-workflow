@@ -9,9 +9,11 @@ import { adminPromptsRoutes } from "./routes/admin-prompts";
 import { authRoutes } from "./routes/auth";
 import { jobsRoutes } from "./routes/jobs";
 import { todosRoutes } from "./routes/todos";
+import { ensureDefaultAdmin } from "./services/admins";
 
 async function start(): Promise<void> {
   await getDataSource();
+  await ensureDefaultAdmin();
 
   const fastify = Fastify({ logger: true });
 
