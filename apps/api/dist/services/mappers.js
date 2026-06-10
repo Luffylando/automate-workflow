@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.toTodoDto = toTodoDto;
+exports.toTodoRatingDto = toTodoRatingDto;
 exports.toUserDto = toUserDto;
 exports.toJobDto = toJobDto;
 function toTodoDto(todo) {
@@ -10,6 +11,15 @@ function toTodoDto(todo) {
         completed: todo.completed,
         createdAt: todo.createdAt.toISOString(),
         updatedAt: todo.updatedAt.toISOString(),
+    };
+}
+function toTodoRatingDto(rating) {
+    return {
+        id: rating.id,
+        userId: rating.userId,
+        todoId: rating.todoId,
+        value: rating.value,
+        createdAt: rating.createdAt.toISOString(),
     };
 }
 function toUserDto(user) {

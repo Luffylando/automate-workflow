@@ -19,6 +19,22 @@ const mappers_1 = require("./mappers");
             updatedAt: "2026-06-10T10:05:00.000Z",
         });
     });
+    (0, vitest_1.it)("maps a todo rating entity to dto", () => {
+        const rating = {
+            id: "rating-1",
+            userId: "user-1",
+            todoId: "todo-1",
+            value: 5,
+            createdAt: new Date("2026-06-10T10:00:00.000Z"),
+        };
+        (0, vitest_1.expect)((0, mappers_1.toTodoRatingDto)(rating)).toEqual({
+            id: "rating-1",
+            userId: "user-1",
+            todoId: "todo-1",
+            value: 5,
+            createdAt: "2026-06-10T10:00:00.000Z",
+        });
+    });
     (0, vitest_1.it)("maps a user entity to dto", () => {
         const user = {
             id: "user-1",

@@ -2,13 +2,41 @@ import { getDataSource } from "../db/data-source";
 import { Todo } from "../db/entities/Todo";
 import type { TodoDto } from "../types";
 import { toTodoDto } from "./mappers";
+import {
+  deleteRatingsForTodo,
+  getRatingSummariesForTodos,
+  getUserRatingsForTodos,
+} from "./todo-ratings";
 
-export async function listTodos(): Promise<TodoDto[]> {
+function enrichTodoDto(
+  todo: TodoDto,
+  summaries: Map<string, { averageRating: number | null; ratingCount: number }>,
+  userRatings: Map<string, number>,
+): TodoDto {
+  const summary = summaries.get(todo.id);
+  const myRating = userRatings.get(todo.id);
+
+  return {
+    ...todo,
+    averageRating: summary?.averageRating ?? null,
+    ratingCount: summary?.ratingCount ?? 0,
+    myRating: myRating ?? null,
+  };
+}
+
+export async function listTodos(userId?: string): Promise<TodoDto[]> {
   const dataSource = await getDataSource();
   const todos = await dataSource.getRepository(Todo).find({
     order: { createdAt: "DESC" },
   });
-  return todos.map(toTodoDto);
+  const todoDtos = todos.map(toTodoDto);
+  const todoIds = todoDtos.map((todo) => todo.id);
+  const summaries = await getRatingSummariesForTodos(todoIds);
+  const userRatings = userId
+    ? await getUserRatingsForTodos(userId, todoIds)
+    : new Map<string, number>();
+
+  return todoDtos.map((todo) => enrichTodoDto(todo, summaries, userRatings));
 }
 
 export async function getTodoById(id: string): Promise<TodoDto | null> {
@@ -52,5 +80,11 @@ export async function updateTodo(
 export async function deleteTodo(id: string): Promise<boolean> {
   const dataSource = await getDataSource();
   const result = await dataSource.getRepository(Todo).delete({ id });
-  return (result.affected ?? 0) > 0;
+  const deleted = (result.affected ?? 0) > 0;
+
+  if (deleted) {
+    await deleteRatingsForTodo(id);
+  }
+
+  return deleted;
 }

@@ -18,6 +18,9 @@ export interface Todo {
   completed: boolean;
   createdAt: string;
   updatedAt: string;
+  averageRating?: number | null;
+  ratingCount?: number;
+  myRating?: number | null;
 }
 
 export type UserRole = "admin" | "user";

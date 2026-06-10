@@ -40,7 +40,9 @@ export async function getAdminSession(): Promise<AuthSession | null> {
 }
 
 export async function listTodos(): Promise<Todo[]> {
+  const cookieStore = await cookies();
   const response = await fetch(`${getApiUrl()}/api/todos`, {
+    headers: { cookie: cookieStore.toString() },
     cache: "no-store",
   });
 

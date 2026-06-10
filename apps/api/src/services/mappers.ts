@@ -1,7 +1,8 @@
 import { Job } from "../db/entities/Job";
 import { Todo } from "../db/entities/Todo";
+import { TodoRating } from "../db/entities/TodoRating";
 import { User } from "../db/entities/User";
-import type { JobDto, TodoDto, UserDto } from "../types";
+import type { JobDto, TodoDto, TodoRatingDto, UserDto } from "../types";
 
 export function toTodoDto(todo: Todo): TodoDto {
   return {
@@ -10,6 +11,16 @@ export function toTodoDto(todo: Todo): TodoDto {
     completed: todo.completed,
     createdAt: todo.createdAt.toISOString(),
     updatedAt: todo.updatedAt.toISOString(),
+  };
+}
+
+export function toTodoRatingDto(rating: TodoRating): TodoRatingDto {
+  return {
+    id: rating.id,
+    userId: rating.userId,
+    todoId: rating.todoId,
+    value: rating.value,
+    createdAt: rating.createdAt.toISOString(),
   };
 }
 

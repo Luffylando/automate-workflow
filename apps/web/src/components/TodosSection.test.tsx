@@ -59,6 +59,80 @@ describe("TodosSection", () => {
     expect(screen.getByText("1 open · 1 done")).toBeInTheDocument();
   });
 
+  it("rates a todo when rating is enabled", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ value: 4 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <TodosSection
+        canRate
+        initialTodos={[
+          {
+            id: "1",
+            title: "Write tests",
+            completed: false,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+            averageRating: null,
+            ratingCount: 0,
+            myRating: null,
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Rate Write tests 4 stars" }),
+    );
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith("/api/todos/1/ratings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: 4 }),
+      });
+      expect(screen.getByText("You rated 4 ★")).toBeInTheDocument();
+    });
+  });
+
+  it("shows an error when the user already rated a todo", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ error: "You have already rated this todo" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <TodosSection
+        canRate
+        initialTodos={[
+          {
+            id: "1",
+            title: "Write tests",
+            completed: false,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+            myRating: null,
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Rate Write tests 5 stars" }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("You have already rated this todo"),
+      ).toBeInTheDocument();
+    });
+  });
+
   it("creates a todo through the API", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

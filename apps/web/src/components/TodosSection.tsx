@@ -6,11 +6,23 @@ import type { Todo } from "@/lib/types";
 interface TodosSectionProps {
   initialTodos: Todo[];
   variant?: "default" | "compact";
+  canRate?: boolean;
+}
+
+const RATING_VALUES = [1, 2, 3, 4, 5] as const;
+
+function formatAverageRating(average: number | null | undefined): string | null {
+  if (average == null) {
+    return null;
+  }
+
+  return average.toFixed(1);
 }
 
 export function TodosSection({
   initialTodos,
   variant = "default",
+  canRate = false,
 }: TodosSectionProps) {
   const [todos, setTodos] = useState(initialTodos);
   const [newTitle, setNewTitle] = useState("");
@@ -18,6 +30,7 @@ export function TodosSection({
   const [editTitle, setEditTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [ratingTodoId, setRatingTodoId] = useState<string | null>(null);
 
   const isCompact = variant === "compact";
 
@@ -134,6 +147,58 @@ export function TodosSection({
           ? updateError.message
           : "Failed to update todo",
       );
+    }
+  }
+
+  async function handleRate(todoId: string, value: number) {
+    setRatingTodoId(todoId);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/todos/${todoId}/ratings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value }),
+      });
+
+      const data = (await response.json()) as
+        | { value: number }
+        | { error?: string };
+
+      if (!response.ok) {
+        throw new Error(
+          "error" in data ? data.error : "Failed to rate todo",
+        );
+      }
+
+      setTodos((current) =>
+        current.map((item) => {
+          if (item.id !== todoId) {
+            return item;
+          }
+
+          const previousCount = item.ratingCount ?? 0;
+          const previousAverage = item.averageRating ?? 0;
+          const nextCount = previousCount + 1;
+          const nextAverage =
+            previousCount === 0
+              ? value
+              : (previousAverage * previousCount + value) / nextCount;
+
+          return {
+            ...item,
+            myRating: value,
+            ratingCount: nextCount,
+            averageRating: nextAverage,
+          };
+        }),
+      );
+    } catch (rateError) {
+      setError(
+        rateError instanceof Error ? rateError.message : "Failed to rate todo",
+      );
+    } finally {
+      setRatingTodoId(null);
     }
   }
 
@@ -327,7 +392,56 @@ export function TodosSection({
                   )}
                 </div>
 
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center">
+                  <div className="flex flex-col items-end gap-0.5">
+                    {todo.ratingCount ? (
+                      <p
+                        className={`text-indigo-600/80 ${
+                          isCompact ? "text-[10px]" : "text-[11px]"
+                        }`}
+                      >
+                        {formatAverageRating(todo.averageRating)} ★
+                        <span className="text-indigo-400">
+                          {" "}
+                          ({todo.ratingCount})
+                        </span>
+                      </p>
+                    ) : null}
+                    {canRate ? (
+                      todo.myRating != null ? (
+                        <p
+                          className={`font-medium text-amber-600 ${
+                            isCompact ? "text-[10px]" : "text-[11px]"
+                          }`}
+                        >
+                          You rated {todo.myRating} ★
+                        </p>
+                      ) : (
+                        <div
+                          className="flex items-center gap-0.5"
+                          role="group"
+                          aria-label={`Rate ${todo.title}`}
+                        >
+                          {RATING_VALUES.map((value) => (
+                            <button
+                              key={value}
+                              type="button"
+                              disabled={ratingTodoId === todo.id}
+                              onClick={() => void handleRate(todo.id, value)}
+                              className={`rounded px-0.5 font-medium text-amber-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                isCompact ? "text-[11px]" : "text-xs"
+                              }`}
+                              aria-label={`Rate ${todo.title} ${value} stars`}
+                            >
+                              ★
+                            </button>
+                          ))}
+                        </div>
+                      )
+                    ) : null}
+                  </div>
+
+                  <div className="flex items-center gap-1">
                   {editingId === todo.id ? (
                     <>
                       <button
@@ -365,6 +479,7 @@ export function TodosSection({
                       </button>
                     </>
                   )}
+                  </div>
                 </div>
               </li>
             ))}
