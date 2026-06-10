@@ -45,6 +45,20 @@ describe("ThemeToggle", () => {
     expect(screen.getByText("Dark")).toBeInTheDocument();
   });
 
+  it("syncs toggle labels from stored theme without hydration mismatch", async () => {
+    window.localStorage.setItem("aw-theme", "dark");
+    document.documentElement.classList.add("dark");
+
+    renderWithTheme();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "Switch to light theme" }),
+      ).toBeInTheDocument();
+    });
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+  });
+
   it("keeps the dark class when React mutates the html class attribute", async () => {
     renderWithTheme();
 
