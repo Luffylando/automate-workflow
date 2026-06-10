@@ -55,9 +55,31 @@ jobs:
       - name: Dev smoke test
         run: bash scripts/ci-smoke-dev.sh
 
+  mark-ready:
+    name: Mark PR ready
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Mark draft pull request as ready for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          is_draft="$(gh pr view "$PR_NUMBER" --json isDraft --jq .isDraft)"
+          if [ "$is_draft" = "true" ]; then
+            gh pr ready "$PR_NUMBER"
+            echo "PR #$PR_NUMBER marked ready for review."
+          else
+            echo "PR #$PR_NUMBER is already ready for review."
+          fi
+
   auto-merge:
     name: Auto-merge
-    needs: verify
+    needs: [verify, mark-ready]
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:

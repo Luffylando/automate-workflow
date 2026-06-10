@@ -49,6 +49,7 @@ Open [http://localhost:3000](http://localhost:3000), sign in at `/login`, and su
 | `SESSION_SECRET` | Yes | JWT signing secret (32+ chars) |
 | `CURSOR_API_KEY` | For agents | From [Cursor Dashboard → Integrations](https://cursor.com/dashboard/integrations) |
 | `GITHUB_REPO_URL` | For agents | Full GitHub URL |
+| `GITHUB_TOKEN` | For agents | GitHub token with `pull_requests: write` to mark agent PRs ready for review |
 | `CURSOR_MODEL` | No | Defaults to `composer-2.5` |
 | `PORT` | No | Defaults to `3001` |
 
@@ -91,6 +92,8 @@ postgresql://automate:automate@localhost:5432/automate_workflow
 ## CI and auto-merge
 
 Every push and pull request to `main` runs the same checks as local `pnpm verify` (build, test, dev smoke).
+
+When a Cloud Agent opens a pull request, Cursor creates it as a draft. CI marks draft PRs **ready for review** automatically so auto-merge can proceed. The API also marks PRs ready immediately when `GITHUB_TOKEN` is configured.
 
 When a pull request passes CI, GitHub Actions **auto-merges** it with squash (and deletes the branch) when the PR is mergeable. If there are conflicts or branch protection blocks it, the PR stays open for manual merge.
 

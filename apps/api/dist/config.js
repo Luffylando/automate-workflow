@@ -30,6 +30,7 @@ exports.config = {
     sessionSecret: resolveSessionSecret(),
     cursorApiKey: process.env.CURSOR_API_KEY ?? "",
     githubRepoUrl: process.env.GITHUB_REPO_URL ?? "",
+    githubToken: process.env.GITHUB_TOKEN ?? "",
     cursorModel: process.env.CURSOR_MODEL ?? "composer-2.5",
     webOrigin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
     isProduction: process.env.NODE_ENV === "production",
