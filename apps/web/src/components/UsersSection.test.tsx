@@ -34,6 +34,26 @@ describe("UsersSection", () => {
     expect(screen.getByText("No users yet.")).toBeInTheDocument();
   });
 
+  it("renders compact variant with member count", () => {
+    render(
+      <UsersSection
+        variant="compact"
+        initialUsers={[
+          {
+            id: "1",
+            name: "Alex Rivera",
+            email: "alex@example.com",
+            role: "user",
+            createdAt: "2026-01-01T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("1 members")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "+ Add" })).toBeInTheDocument();
+  });
+
   it("creates a user through the API", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LogoutButton } from "@/components/LogoutButton";
+import { DashboardHeader } from "@/components/DashboardHeader";
+import { DashboardStatCard } from "@/components/DashboardStatCard";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
 import { TodosSection } from "@/components/TodosSection";
 import { UsersSection } from "@/components/UsersSection";
@@ -17,34 +17,42 @@ export default async function DashboardPage() {
   const todos = await listTodos();
   const users = adminSession ? await listUsers() : [];
 
+  const totalTodos = todos.length;
+  const completedTodos = todos.filter((todo) => todo.completed).length;
+  const pendingTodos = totalTodos - completedTodos;
+
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
-      <header className="border-b border-indigo-200/60 bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
-          <div>
-            <p className="text-sm font-semibold tracking-wide brand-gradient-text">
-              Automate Workflow
-            </p>
-            <h1 className="text-xl font-semibold text-indigo-950">Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-indigo-700 sm:inline">
-              {session.email}
-            </span>
-            <Link
-              href="/"
-              className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:border-violet-200 hover:bg-violet-50"
-            >
-              Home
-            </Link>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+      <DashboardHeader email={session.email} />
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-16">
-        <TodosSection initialTodos={todos} />
-        {adminSession ? <UsersSection initialUsers={users} /> : null}
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-5">
+        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+          <DashboardStatCard label="Total tasks" value={totalTodos} accent="indigo" />
+          <DashboardStatCard label="Open" value={pendingTodos} accent="amber" />
+          <DashboardStatCard label="Done" value={completedTodos} accent="emerald" />
+          {adminSession ? (
+            <DashboardStatCard label="Users" value={users.length} accent="fuchsia" />
+          ) : (
+            <DashboardStatCard label="Done %" value={totalTodos ? Math.round((completedTodos / totalTodos) * 100) : 0} accent="fuchsia" />
+          )}
+        </div>
+
+        <div
+          className={
+            adminSession
+              ? "grid gap-4 lg:grid-cols-5 lg:items-start"
+              : "grid gap-4"
+          }
+        >
+          <div className={adminSession ? "lg:col-span-3" : ""}>
+            <TodosSection initialTodos={todos} variant="compact" />
+          </div>
+          {adminSession ? (
+            <div className="lg:col-span-2">
+              <UsersSection initialUsers={users} variant="compact" />
+            </div>
+          ) : null}
+        </div>
       </main>
 
       <PoweredByPromptsFooter />
