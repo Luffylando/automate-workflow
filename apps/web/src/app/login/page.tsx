@@ -29,7 +29,7 @@ export default function LoginPage() {
         throw new Error(data.error ?? "Login failed");
       }
 
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (loginError) {
       setError(
@@ -51,7 +51,7 @@ export default function LoginPage() {
           Admin sign in
         </h1>
         <p className="mt-2 text-sm text-indigo-900/70">
-          Only admins can access the prompt console.
+          Sign in to manage todos, users, and the prompt console.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">

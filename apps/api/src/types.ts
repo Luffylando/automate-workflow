@@ -20,6 +20,16 @@ export interface JobDto {
   error?: string;
 }
 
+export type UserRole = "admin" | "user";
+
+export interface UserDto {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+}
+
 export interface AdminSession {
   role: "admin";
   sub: string;

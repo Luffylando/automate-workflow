@@ -4,11 +4,12 @@ import { config } from "../config";
 import { AdminUser } from "./entities/AdminUser";
 import { Job } from "./entities/Job";
 import { Todo } from "./entities/Todo";
+import { User } from "./entities/User";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
   url: config.databaseUrl,
-  entities: [Todo, Job, AdminUser],
+  entities: [Todo, Job, AdminUser, User],
   synchronize: true,
   logging: false,
 });

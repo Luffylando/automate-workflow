@@ -9,6 +9,7 @@ import { adminPromptsRoutes } from "./routes/admin-prompts";
 import { authRoutes } from "./routes/auth";
 import { jobsRoutes } from "./routes/jobs";
 import { todosRoutes } from "./routes/todos";
+import { usersRoutes } from "./routes/users";
 import { ensureDefaultAdmin } from "./services/admins";
 
 async function start(): Promise<void> {
@@ -22,6 +23,7 @@ async function start(): Promise<void> {
 
   await fastify.register(authRoutes);
   await fastify.register(todosRoutes);
+  await fastify.register(usersRoutes);
   await fastify.register(jobsRoutes);
   await fastify.register(adminPromptsRoutes);
 

@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import type { AdminSession, Todo } from "./types";
+import type { AdminSession, Todo, User } from "./types";
 import { getApiUrl } from "./api-url";
 
 export async function getSession(): Promise<AdminSession | null> {
@@ -40,4 +40,19 @@ export async function listTodos(): Promise<Todo[]> {
 
   const data = (await response.json()) as { todos: Todo[] };
   return data.todos;
+}
+
+export async function listUsers(): Promise<User[]> {
+  const cookieStore = await cookies();
+  const response = await fetch(`${getApiUrl()}/api/users`, {
+    headers: { cookie: cookieStore.toString() },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch users");
+  }
+
+  const data = (await response.json()) as { users: User[] };
+  return data.users;
 }
