@@ -69,9 +69,28 @@ export async function listUsers(): Promise<User[]> {
   return data.users;
 }
 
-export async function listJobs(): Promise<Job[]> {
+export interface ListJobsOptions {
+  prompt?: string;
+  date?: string;
+}
+
+export async function listJobs(options: ListJobsOptions = {}): Promise<Job[]> {
   const cookieStore = await cookies();
-  const response = await fetch(`${getApiUrl()}/api/jobs`, {
+  const params = new URLSearchParams();
+
+  if (options.prompt?.trim()) {
+    params.set("prompt", options.prompt.trim());
+  }
+  if (options.date?.trim()) {
+    params.set("date", options.date.trim());
+  }
+
+  const query = params.toString();
+  const url = query
+    ? `${getApiUrl()}/api/jobs?${query}`
+    : `${getApiUrl()}/api/jobs`;
+
+  const response = await fetch(url, {
     headers: { cookie: cookieStore.toString() },
     cache: "no-store",
   });
