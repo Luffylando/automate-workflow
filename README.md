@@ -19,10 +19,21 @@ pnpm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
 # Edit apps/api/.env — admin password, session secret, Cursor + GitHub vars
+pnpm dev    # start Postgres + API + web
+pnpm stop   # stop everything
+```
+
+`pnpm dev` starts all three services in one terminal. Press **Ctrl+C** or run `pnpm stop` to shut them down.
+
+**No Docker?** Set up local Postgres with Homebrew:
+
+```bash
+brew install postgresql@16
+pnpm db:setup
 pnpm dev
 ```
 
-This starts Postgres, the API, and the web app.
+Or use a remote Postgres (Neon, Supabase) and set `DATABASE_URL` in `apps/api/.env`.
 
 Open [http://localhost:3000](http://localhost:3000), sign in at `/login`, and submit a prompt from the admin console.
 

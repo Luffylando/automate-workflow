@@ -4,4 +4,5 @@ node_modules/
 .env.local
 apps/api/.env
 apps/web/data/
+.dev.state
 .DS_Store
