@@ -64,6 +64,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - uses: actions/checkout@v4
+
       - name: Merge pull request when checks pass
         env:
           GH_TOKEN: ${{ github.token }}
