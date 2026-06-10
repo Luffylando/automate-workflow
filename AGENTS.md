@@ -6,37 +6,38 @@ You are modifying the **automate-workflow** monorepo. Follow these rules on ever
 
 ```
 automate-workflow/
-├── apps/web/          # Next.js frontend + API routes (App Router)
-├── packages/shared/   # Shared types (create when needed)
-├── infra/             # Docker, migrations (create when needed)
+├── apps/web/          # Next.js frontend
+├── apps/api/          # Fastify backend + TypeORM + PostgreSQL
+├── docker-compose.yml # Local Postgres
 └── AGENTS.md          # This file
 ```
 
 ## Stack
 
 - **Frontend:** Next.js (App Router), React, TypeScript, Tailwind CSS
-- **API:** Next.js route handlers under `apps/web/src/app/api/`
+- **Backend:** Fastify, TypeORM, PostgreSQL
 - **Package manager:** pnpm workspaces
 
 ## Coding rules
 
 1. Keep changes minimal and focused on the user request.
 2. Match existing naming, file structure, and patterns in the repo.
-3. Put new API routes in `apps/web/src/app/api/`.
-4. Put reusable logic in `apps/web/src/lib/`.
-5. Put UI components in `apps/web/src/components/`.
-6. Never commit secrets (`.env`, API keys, passwords).
-7. Add or update tests when behavior changes meaningfully.
-8. Run `pnpm build` from the repo root before finishing.
+3. Put API routes in `apps/api/src/routes/`.
+4. Put business logic in `apps/api/src/services/`.
+5. Put TypeORM entities in `apps/api/src/db/entities/`.
+6. Put UI components in `apps/web/src/components/`.
+7. Never commit secrets (`.env`, API keys, passwords).
+8. Add or update tests when behavior changes meaningfully.
+9. Run `pnpm build` from the repo root before finishing.
 
 ## Backend features
 
 When the user asks for a new resource (users, todos, etc.):
 
-1. Define TypeScript types in `apps/web/src/lib/` or `packages/shared/`.
-2. Add API routes under `apps/web/src/app/api/<resource>/`.
-3. Start with in-memory or file storage if no database exists yet.
-4. Wire the frontend to call the new APIs.
+1. Add a TypeORM entity in `apps/api/src/db/entities/`.
+2. Add service functions in `apps/api/src/services/`.
+3. Expose routes in `apps/api/src/routes/`.
+4. Wire the frontend to call `/api/<resource>` (proxied to Fastify).
 
 ## Pull request
 

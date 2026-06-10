@@ -2,44 +2,49 @@
 
 Prompt-driven full-stack platform. Admins describe features in natural language; a Cursor Cloud Agent modifies the GitHub repo and opens a pull request.
 
-## Current status
+## Architecture
 
-| Phase | Status |
-|-------|--------|
-| 1 — Admin prompt UI + job tracking | Done |
-| 2 — Cursor Cloud Agent API → PR | Done |
-| 3+ — User stories (users, styling, DB) | Next |
+| App | Role | Port |
+|-----|------|------|
+| `apps/web` | Next.js frontend | 3000 |
+| `apps/api` | Fastify + TypeORM + PostgreSQL | 3001 |
+| `postgres` | Database (Docker) | 5432 |
+
+The frontend proxies `/api/*` to the Fastify backend.
 
 ## Quick start
 
 ```bash
 pnpm install
+cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
-# Edit .env.local — set CURSOR_API_KEY and GITHUB_REPO_URL for Phase 2
+# Edit apps/api/.env — admin password, session secret, Cursor + GitHub vars
 pnpm dev
 ```
+
+This starts Postgres, the API, and the web app.
 
 Open [http://localhost:3000](http://localhost:3000), sign in at `/login`, and submit a prompt from the admin console.
 
 ## Environment variables
 
+### `apps/api/.env`
+
 | Variable | Required | Description |
 |----------|----------|-------------|
+| `DATABASE_URL` | Yes | Postgres connection string |
 | `ADMIN_PASSWORD` | Yes | Admin sign-in password |
 | `SESSION_SECRET` | Yes | JWT signing secret (32+ chars) |
-| `CURSOR_API_KEY` | Phase 2+ | From [Cursor Dashboard → Integrations](https://cursor.com/dashboard/integrations) |
-| `GITHUB_REPO_URL` | Phase 2+ | Full GitHub URL, e.g. `https://github.com/org/automate-workflow` |
+| `CURSOR_API_KEY` | For agents | From [Cursor Dashboard → Integrations](https://cursor.com/dashboard/integrations) |
+| `GITHUB_REPO_URL` | For agents | Full GitHub URL |
 | `CURSOR_MODEL` | No | Defaults to `composer-2.5` |
+| `PORT` | No | Defaults to `3001` |
 
-The GitHub repo must be connected to Cursor (Dashboard → Cloud Agents → Repositories).
+### `apps/web/.env.local`
 
-## How it works
-
-1. Admin submits a prompt → job created (`queued`)
-2. Background worker calls the [Cursor Cloud Agents API](https://cursor.com/docs/cloud-agent/api/endpoints) against `GITHUB_REPO_URL`
-3. Agent edits code per `AGENTS.md` and opens a PR (`autoCreatePR`)
-4. Job updates to `done` with PR link, or `failed` with error
-5. Merge the PR → deploy picks up changes
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `API_URL` | No | Defaults to `http://localhost:3001` |
 
 ## API
 
@@ -48,5 +53,21 @@ The GitHub repo must be connected to Cursor (Dashboard → Cloud Agents → Repo
 | `/api/auth/login` | POST | Public | Admin sign-in |
 | `/api/auth/logout` | POST | Public | Clear session |
 | `/api/auth/me` | GET | Public | Current session |
+| `/api/users` | GET | Public | List users from Postgres |
 | `/api/admin/prompts` | POST | Admin | Submit prompt → `{ jobId }` |
 | `/api/jobs/:id` | GET | Admin | Poll job status |
+
+## Database
+
+Users and jobs are stored in PostgreSQL via TypeORM.
+
+```bash
+pnpm db:up    # start Postgres
+pnpm db:down  # stop Postgres
+```
+
+Default local connection:
+
+```
+postgresql://automate:automate@localhost:5432/automate_workflow
+```

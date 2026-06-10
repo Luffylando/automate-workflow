@@ -2,8 +2,7 @@ import Link from "next/link";
 import { AdminPromptPanel } from "@/components/AdminPromptPanel";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
 import { UsersList } from "@/components/UsersList";
-import { getSession } from "@/lib/auth";
-import { listUsers } from "@/lib/users";
+import { getSession, listUsers } from "@/lib/server-api";
 
 export default async function Home() {
   const [session, users] = await Promise.all([getSession(), listUsers()]);

@@ -2,10 +2,19 @@
   "name": "automate-workflow",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter web dev",
-    "build": "pnpm --filter web build",
-    "start": "pnpm --filter web start",
+    "dev": "pnpm run dev:all",
+    "dev:all": "pnpm run db:up && concurrently -k -n api,web -c blue,green \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "build": "pnpm --filter api build && pnpm --filter web build",
+    "start:api": "pnpm --filter api start",
+    "start:web": "pnpm --filter web start",
     "lint": "pnpm --filter web lint",
-    "test": "pnpm --filter web test"
+    "test": "pnpm --filter web test && pnpm --filter api test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
