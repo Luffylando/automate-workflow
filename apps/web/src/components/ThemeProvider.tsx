@@ -12,7 +12,6 @@ import {
 import {
   applyThemeClass,
   persistTheme,
-  readResolvedThemeFromDom,
   readStoredTheme,
   resolveTheme,
   type ResolvedTheme,
@@ -84,7 +83,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useLayoutEffect(() => {
     const storedTheme = readStoredTheme();
-    const resolved = readResolvedThemeFromDom();
+    const resolved = resolveTheme(storedTheme);
     setThemeState(storedTheme);
     setResolvedTheme(resolved);
     applyThemeClass(resolved);
