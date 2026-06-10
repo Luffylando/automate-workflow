@@ -4,7 +4,15 @@ const vitest_1 = require("vitest");
 const jobs_1 = require("./jobs");
 const mockSave = vitest_1.vi.fn();
 const mockCreate = vitest_1.vi.fn();
-const mockFind = vitest_1.vi.fn();
+const mockGetMany = vitest_1.vi.fn();
+const mockQueryBuilder = {
+    orderBy: vitest_1.vi.fn(),
+    take: vitest_1.vi.fn(),
+    skip: vitest_1.vi.fn(),
+    andWhere: vitest_1.vi.fn(),
+    getMany: mockGetMany,
+};
+const mockCreateQueryBuilder = vitest_1.vi.fn();
 const mockGetRepository = vitest_1.vi.fn();
 vitest_1.vi.mock("../db/data-source", () => ({
     getDataSource: vitest_1.vi.fn(async () => ({
@@ -14,10 +22,15 @@ vitest_1.vi.mock("../db/data-source", () => ({
 (0, vitest_1.describe)("jobs service", () => {
     (0, vitest_1.beforeEach)(() => {
         vitest_1.vi.clearAllMocks();
+        mockQueryBuilder.orderBy.mockReturnValue(mockQueryBuilder);
+        mockQueryBuilder.take.mockReturnValue(mockQueryBuilder);
+        mockQueryBuilder.skip.mockReturnValue(mockQueryBuilder);
+        mockQueryBuilder.andWhere.mockReturnValue(mockQueryBuilder);
+        mockCreateQueryBuilder.mockReturnValue(mockQueryBuilder);
         mockGetRepository.mockReturnValue({
             create: mockCreate,
             save: mockSave,
-            find: mockFind,
+            createQueryBuilder: mockCreateQueryBuilder,
         });
     });
     (0, vitest_1.it)("creates a job with submitter and metadata", async () => {
@@ -100,15 +113,27 @@ vitest_1.vi.mock("../db/data-source", () => ({
                 updatedAt,
             },
         ];
-        mockFind.mockResolvedValue(jobs);
+        mockGetMany.mockResolvedValue(jobs);
         const result = await (0, jobs_1.listJobs)({ limit: 10, offset: 0 });
-        (0, vitest_1.expect)(mockFind).toHaveBeenCalledWith({
-            order: { createdAt: "DESC" },
-            take: 10,
-            skip: 0,
-        });
+        (0, vitest_1.expect)(mockCreateQueryBuilder).toHaveBeenCalledWith("job");
+        (0, vitest_1.expect)(mockQueryBuilder.orderBy).toHaveBeenCalledWith("job.createdAt", "DESC");
+        (0, vitest_1.expect)(mockQueryBuilder.take).toHaveBeenCalledWith(10);
+        (0, vitest_1.expect)(mockQueryBuilder.skip).toHaveBeenCalledWith(0);
+        (0, vitest_1.expect)(mockQueryBuilder.andWhere).not.toHaveBeenCalled();
         (0, vitest_1.expect)(result).toHaveLength(2);
         (0, vitest_1.expect)(result[0]?.id).toBe("job-2");
         (0, vitest_1.expect)(result[1]?.error).toBe("Agent failed");
+    });
+    (0, vitest_1.it)("filters jobs by prompt name and date", async () => {
+        mockGetMany.mockResolvedValue([]);
+        await (0, jobs_1.listJobs)({
+            prompt: "history",
+            date: "2026-06-10",
+        });
+        (0, vitest_1.expect)(mockQueryBuilder.andWhere).toHaveBeenNthCalledWith(1, "job.prompt ILIKE :prompt", { prompt: "%history%" });
+        (0, vitest_1.expect)(mockQueryBuilder.andWhere).toHaveBeenNthCalledWith(2, "job.createdAt >= :start AND job.createdAt < :end", {
+            start: new Date("2026-06-10T00:00:00.000Z"),
+            end: new Date("2026-06-11T00:00:00.000Z"),
+        });
     });
 });
