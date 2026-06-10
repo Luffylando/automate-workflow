@@ -5,70 +5,87 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
-
-export type Theme = "light" | "dark" | "system";
-
-const STORAGE_KEY = "aw-theme";
+import {
+  applyThemeClass,
+  persistTheme,
+  readResolvedThemeFromDom,
+  readStoredTheme,
+  resolveTheme,
+  type ResolvedTheme,
+  type Theme,
+} from "@/lib/theme";
 
 interface ThemeContextValue {
   theme: Theme;
-  resolvedTheme: "light" | "dark";
+  resolvedTheme: ResolvedTheme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function getSystemTheme(): "light" | "dark" {
+function getInitialThemeState(): {
+  theme: Theme;
+  resolvedTheme: ResolvedTheme;
+} {
   if (typeof window === "undefined") {
-    return "light";
+    return { theme: "system", resolvedTheme: "light" };
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  const theme = readStoredTheme();
+  const resolvedTheme = readResolvedThemeFromDom();
+
+  return { theme, resolvedTheme };
 }
 
-function resolveTheme(theme: Theme): "light" | "dark" {
-  return theme === "system" ? getSystemTheme() : theme;
-}
+function useHtmlThemeSync(resolvedTheme: ResolvedTheme) {
+  useLayoutEffect(() => {
+    const html = document.documentElement;
+    const isDark = resolvedTheme === "dark";
 
-function applyThemeClass(resolvedTheme: "light" | "dark") {
-  document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
-}
+    const syncClass = () => {
+      html.classList.toggle("dark", isDark);
+    };
 
-function readStoredTheme(): Theme {
-  if (typeof window === "undefined") {
-    return "system";
-  }
+    syncClass();
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored === "light" || stored === "dark" || stored === "system") {
-    return stored;
-  }
+    const observer = new MutationObserver(() => {
+      if (html.classList.contains("dark") !== isDark) {
+        syncClass();
+      }
+    });
 
-  return "system";
+    observer.observe(html, { attributes: true, attributeFilter: ["class"] });
+
+    return () => observer.disconnect();
+  }, [resolvedTheme]);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [theme, setThemeState] = useState<Theme>(
+    () => getInitialThemeState().theme,
+  );
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(
+    () => getInitialThemeState().resolvedTheme,
+  );
+
+  useHtmlThemeSync(resolvedTheme);
 
   const setTheme = useCallback((nextTheme: Theme) => {
-    setThemeState(nextTheme);
-    window.localStorage.setItem(STORAGE_KEY, nextTheme);
     const resolved = resolveTheme(nextTheme);
+    setThemeState(nextTheme);
     setResolvedTheme(resolved);
     applyThemeClass(resolved);
+    persistTheme(nextTheme);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    const resolved = resolveTheme(theme);
-    setTheme(resolved === "dark" ? "light" : "dark");
-  }, [setTheme, theme]);
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  }, [resolvedTheme, setTheme]);
 
   useEffect(() => {
     const storedTheme = readStoredTheme();
@@ -117,3 +134,5 @@ export function useTheme() {
 
   return context;
 }
+
+export type { Theme, ResolvedTheme };

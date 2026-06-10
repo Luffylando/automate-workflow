@@ -1,14 +1,14 @@
 export const HEADER_BAR_CLASS =
-  "border-b border-border bg-surface/85 backdrop-blur-sm dark:bg-surface/80";
+  "border-b border-border bg-surface/90 backdrop-blur-sm";
 
 export const FOOTER_BAR_CLASS =
-  "border-t border-border bg-surface/60 py-2.5 text-center text-xs backdrop-blur-sm dark:bg-surface/50";
+  "border-t border-border bg-surface/75 py-2.5 text-center text-xs backdrop-blur-sm";
 
 export const PANEL_COMPACT_CLASS =
-  "dashboard-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-surface/95 dark:bg-surface/90";
+  "dashboard-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-surface";
 
 export const PANEL_DEFAULT_CLASS =
-  "card-glow overflow-hidden rounded-2xl border border-border bg-surface/90 p-8 backdrop-blur-sm dark:bg-surface/85";
+  "card-glow overflow-hidden rounded-2xl border border-border bg-surface p-8 backdrop-blur-sm";
 
 export const PANEL_SECTION_HEADER_CLASS =
   "flex shrink-0 items-center justify-between gap-3 border-b border-border-muted px-4 py-3";
