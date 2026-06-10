@@ -11,11 +11,11 @@ export class Todo {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: "varchar", length: 255 })
-  name!: string;
+  @Column({ type: "varchar", length: 500 })
+  title!: string;
 
-  @Column({ type: "varchar", length: 255, unique: true })
-  email!: string;
+  @Column({ type: "boolean", default: false })
+  completed!: boolean;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
