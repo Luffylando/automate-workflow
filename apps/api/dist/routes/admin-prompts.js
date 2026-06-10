@@ -5,6 +5,7 @@ const admin_auth_1 = require("../plugins/admin-auth");
 const agent_runner_1 = require("../services/agent-runner");
 const jobs_1 = require("../services/jobs");
 const rate_limit_1 = require("../services/rate-limit");
+const submitter_1 = require("../services/submitter");
 const MAX_METADATA_BYTES = 4096;
 function isPlainObject(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -44,10 +45,16 @@ async function adminPromptsRoutes(fastify) {
                     error: `Rate limit exceeded. Try again in ${rateLimit.retryAfterSeconds}s.`,
                 });
             }
+            const submittedByEmail = await (0, submitter_1.resolveSubmitterEmail)(session.sub, session.email);
+            if (!submittedByEmail) {
+                return reply.status(400).send({
+                    error: "Prompter email could not be determined for this session",
+                });
+            }
             const job = await (0, jobs_1.createJob)({
                 prompt,
                 submittedById: session.sub,
-                submittedByEmail: session.email,
+                submittedByEmail,
                 metadata: {
                     ...metadata,
                     source: metadata?.source ?? "admin-prompt",

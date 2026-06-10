@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vitest_1 = require("vitest");
 const jobs_1 = require("./jobs");
+const submitter_1 = require("./submitter");
 const mockSave = vitest_1.vi.fn();
 const mockCreate = vitest_1.vi.fn();
 const mockGetMany = vitest_1.vi.fn();
@@ -18,6 +19,10 @@ vitest_1.vi.mock("../db/data-source", () => ({
     getDataSource: vitest_1.vi.fn(async () => ({
         getRepository: mockGetRepository,
     })),
+}));
+vitest_1.vi.mock("./submitter", () => ({
+    resolveSubmitterEmail: vitest_1.vi.fn(async (submittedById, submittedByEmail) => submittedByEmail?.trim() || undefined),
+    lookupSubmitterEmailsByIds: vitest_1.vi.fn(async () => new Map()),
 }));
 (0, vitest_1.describe)("jobs service", () => {
     (0, vitest_1.beforeEach)(() => {
@@ -123,6 +128,31 @@ vitest_1.vi.mock("../db/data-source", () => ({
         (0, vitest_1.expect)(result).toHaveLength(2);
         (0, vitest_1.expect)(result[0]?.id).toBe("job-2");
         (0, vitest_1.expect)(result[1]?.error).toBe("Agent failed");
+    });
+    (0, vitest_1.it)("backfills missing submitter emails when listing jobs", async () => {
+        const createdAt = new Date("2026-06-10T10:00:00.000Z");
+        const updatedAt = new Date("2026-06-10T10:05:00.000Z");
+        const jobs = [
+            {
+                id: "job-1",
+                prompt: "Legacy prompt",
+                status: "done",
+                prUrl: null,
+                agentId: null,
+                agentRunId: null,
+                error: null,
+                submittedById: "admin-1",
+                submittedByEmail: null,
+                metadata: null,
+                createdAt,
+                updatedAt,
+            },
+        ];
+        mockGetMany.mockResolvedValue(jobs);
+        vitest_1.vi.mocked(submitter_1.lookupSubmitterEmailsByIds).mockResolvedValue(new Map([["admin-1", "legacy-admin@example.com"]]));
+        const result = await (0, jobs_1.listJobs)();
+        (0, vitest_1.expect)(submitter_1.lookupSubmitterEmailsByIds).toHaveBeenCalledWith(["admin-1"]);
+        (0, vitest_1.expect)(result[0]?.submittedByEmail).toBe("legacy-admin@example.com");
     });
     (0, vitest_1.it)("filters jobs by prompt name and date", async () => {
         mockGetMany.mockResolvedValue([]);

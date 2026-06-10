@@ -1,16 +1,11 @@
 import Link from "next/link";
-import { AdminPromptPanel } from "@/components/AdminPromptPanel";
 import { LogoutButton } from "@/components/LogoutButton";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
 import { TodosSection } from "@/components/TodosSection";
-import { getAdminSession, getSession, listTodos } from "@/lib/server-api";
+import { getSession, listTodos } from "@/lib/server-api";
 
 export default async function Home() {
-  const [session, adminSession, todos] = await Promise.all([
-    getSession(),
-    getAdminSession(),
-    listTodos(),
-  ]);
+  const [session, todos] = await Promise.all([getSession(), listTodos()]);
 
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
@@ -53,8 +48,6 @@ export default async function Home() {
           canRate={Boolean(session)}
         />
       </main>
-
-      {adminSession ? <AdminPromptPanel /> : null}
 
       <PoweredByPromptsFooter />
     </div>

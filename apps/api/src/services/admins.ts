@@ -3,6 +3,11 @@ import { getDataSource } from "../db/data-source";
 import { config } from "../config";
 import { hashPassword, verifyPassword } from "./password";
 
+export async function getAdminById(id: string): Promise<AdminUser | null> {
+  const dataSource = await getDataSource();
+  return dataSource.getRepository(AdminUser).findOne({ where: { id } });
+}
+
 export async function findAdminByEmail(
   email: string,
 ): Promise<AdminUser | null> {

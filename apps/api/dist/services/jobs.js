@@ -7,6 +7,7 @@ exports.updateJobStatus = updateJobStatus;
 const data_source_1 = require("../db/data-source");
 const Job_1 = require("../db/entities/Job");
 const mappers_1 = require("./mappers");
+const submitter_1 = require("./submitter");
 const DEFAULT_LIST_LIMIT = 50;
 const MAX_LIST_LIMIT = 100;
 function parseUtcDateRange(date) {
@@ -20,6 +21,43 @@ function parseUtcDateRange(date) {
     const end = new Date(start);
     end.setUTCDate(end.getUTCDate() + 1);
     return { start, end };
+}
+async function enrichJobDto(job) {
+    const dto = (0, mappers_1.toJobDto)(job);
+    const email = await (0, submitter_1.resolveSubmitterEmail)(job.submittedById, job.submittedByEmail);
+    if (!email) {
+        return dto;
+    }
+    return { ...dto, submittedByEmail: email };
+}
+async function enrichJobDtos(jobs) {
+    const dtos = jobs.map(mappers_1.toJobDto);
+    const idsNeedingEmail = new Set();
+    for (let index = 0; index < jobs.length; index += 1) {
+        const job = jobs[index];
+        const dto = dtos[index];
+        if (!dto) {
+            continue;
+        }
+        if (!dto.submittedByEmail?.trim() && job?.submittedById) {
+            idsNeedingEmail.add(job.submittedById);
+        }
+    }
+    if (idsNeedingEmail.size === 0) {
+        return dtos;
+    }
+    const emailsById = await (0, submitter_1.lookupSubmitterEmailsByIds)([...idsNeedingEmail]);
+    return dtos.map((dto, index) => {
+        if (dto.submittedByEmail?.trim()) {
+            return dto;
+        }
+        const submittedById = jobs[index]?.submittedById;
+        if (!submittedById) {
+            return dto;
+        }
+        const email = emailsById.get(submittedById);
+        return email ? { ...dto, submittedByEmail: email } : dto;
+    });
 }
 async function createJob(input) {
     const dataSource = await (0, data_source_1.getDataSource)();
@@ -36,7 +74,7 @@ async function createJob(input) {
         metadata: input.metadata ?? null,
     });
     const saved = await repo.save(job);
-    return (0, mappers_1.toJobDto)(saved);
+    return enrichJobDto(saved);
 }
 async function listJobs(options = {}) {
     const dataSource = await (0, data_source_1.getDataSource)();
@@ -64,12 +102,12 @@ async function listJobs(options = {}) {
         }
     }
     const jobs = await query.getMany();
-    return jobs.map(mappers_1.toJobDto);
+    return enrichJobDtos(jobs);
 }
 async function getJob(id) {
     const dataSource = await (0, data_source_1.getDataSource)();
     const job = await dataSource.getRepository(Job_1.Job).findOne({ where: { id } });
-    return job ? (0, mappers_1.toJobDto)(job) : null;
+    return job ? enrichJobDto(job) : null;
 }
 async function updateJobStatus(id, status, updates = {}) {
     const dataSource = await (0, data_source_1.getDataSource)();
@@ -88,5 +126,5 @@ async function updateJobStatus(id, status, updates = {}) {
     if ("error" in updates)
         job.error = updates.error ?? null;
     const saved = await repo.save(job);
-    return (0, mappers_1.toJobDto)(saved);
+    return enrichJobDto(saved);
 }

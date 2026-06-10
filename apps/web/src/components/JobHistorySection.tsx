@@ -176,7 +176,7 @@ export function JobHistorySection({ initialJobs }: JobHistorySectionProps) {
             </p>
             {!filtersActive ? (
               <p className="mt-1 text-[11px] text-indigo-500">
-                Submit a prompt from the home page to start tracking jobs here.
+                Submit a prompt from the prompt console to start tracking jobs here.
               </p>
             ) : null}
           </div>
