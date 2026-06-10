@@ -69,26 +69,25 @@ jobs:
       - name: Merge pull request when checks pass
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
 
-          state="$(gh pr view "$PR_NUMBER" -R "$GH_REPO" --json state,mergeable,mergeStateStatus --jq '.state + " " + (.mergeable // "UNKNOWN") + " " + .mergeStateStatus')"
+          state="$(gh pr view "$PR_NUMBER" --json state,mergeable,mergeStateStatus --jq '.state + " " + (.mergeable // "UNKNOWN") + " " + .mergeStateStatus')"
           echo "PR #$PR_NUMBER state: $state"
 
-          if [ "$(gh pr view "$PR_NUMBER" -R "$GH_REPO" --json state --jq .state)" != "OPEN" ]; then
+          if [ "$(gh pr view "$PR_NUMBER" --json state --jq .state)" != "OPEN" ]; then
             echo "PR is not open. Skipping auto-merge."
             exit 0
           fi
 
-          mergeable="$(gh pr view "$PR_NUMBER" -R "$GH_REPO" --json mergeable --jq .mergeable)"
+          mergeable="$(gh pr view "$PR_NUMBER" --json mergeable --jq .mergeable)"
           if [ "$mergeable" != "MERGEABLE" ]; then
             echo "PR is not mergeable ($mergeable). Skipping auto-merge."
             exit 0
           fi
 
-          if gh pr merge "$PR_NUMBER" -R "$GH_REPO" --squash --delete-branch; then
+          if gh pr merge "$PR_NUMBER" --squash --delete-branch; then
             echo "PR #$PR_NUMBER merged automatically."
           else
             echo "Auto-merge was not possible (branch protection or permissions). PR left open for manual merge."
