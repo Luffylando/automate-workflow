@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import type { AuthSession, Todo, User, UserRole } from "./types";
+import type { AuthSession, Job, Todo, User, UserRole } from "./types";
 import { getApiUrl } from "./api-url";
 
 export async function getSession(): Promise<AuthSession | null> {
@@ -67,4 +67,19 @@ export async function listUsers(): Promise<User[]> {
 
   const data = (await response.json()) as { users: User[] };
   return data.users;
+}
+
+export async function listJobs(): Promise<Job[]> {
+  const cookieStore = await cookies();
+  const response = await fetch(`${getApiUrl()}/api/jobs`, {
+    headers: { cookie: cookieStore.toString() },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch jobs");
+  }
+
+  const data = (await response.json()) as { jobs: Job[] };
+  return data.jobs;
 }

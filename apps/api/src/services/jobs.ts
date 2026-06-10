@@ -3,19 +3,54 @@ import { Job } from "../db/entities/Job";
 import type { JobDto, JobStatus } from "../types";
 import { toJobDto } from "./mappers";
 
-export async function createJob(prompt: string): Promise<JobDto> {
+const DEFAULT_LIST_LIMIT = 50;
+const MAX_LIST_LIMIT = 100;
+
+export interface CreateJobInput {
+  prompt: string;
+  submittedById?: string;
+  submittedByEmail?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ListJobsOptions {
+  limit?: number;
+  offset?: number;
+}
+
+export async function createJob(input: CreateJobInput): Promise<JobDto> {
   const dataSource = await getDataSource();
   const repo = dataSource.getRepository(Job);
   const job = repo.create({
-    prompt,
+    prompt: input.prompt,
     status: "queued",
     prUrl: null,
     agentId: null,
     agentRunId: null,
     error: null,
+    submittedById: input.submittedById ?? null,
+    submittedByEmail: input.submittedByEmail ?? null,
+    metadata: input.metadata ?? null,
   });
   const saved = await repo.save(job);
   return toJobDto(saved);
+}
+
+export async function listJobs(
+  options: ListJobsOptions = {},
+): Promise<JobDto[]> {
+  const dataSource = await getDataSource();
+  const limit = Math.min(
+    Math.max(options.limit ?? DEFAULT_LIST_LIMIT, 1),
+    MAX_LIST_LIMIT,
+  );
+  const offset = Math.max(options.offset ?? 0, 0);
+  const jobs = await dataSource.getRepository(Job).find({
+    order: { createdAt: "DESC" },
+    take: limit,
+    skip: offset,
+  });
+  return jobs.map(toJobDto);
 }
 
 export async function getJob(id: string): Promise<JobDto | null> {

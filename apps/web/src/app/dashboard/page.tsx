@@ -2,9 +2,16 @@ import { redirect } from "next/navigation";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardStatCard } from "@/components/DashboardStatCard";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
+import { JobHistorySection } from "@/components/JobHistorySection";
 import { TodosSection } from "@/components/TodosSection";
 import { UsersSection } from "@/components/UsersSection";
-import { getAdminSession, getSession, listTodos, listUsers } from "@/lib/server-api";
+import {
+  getAdminSession,
+  getSession,
+  listJobs,
+  listTodos,
+  listUsers,
+} from "@/lib/server-api";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -16,6 +23,7 @@ export default async function DashboardPage() {
   const adminSession = await getAdminSession();
   const todos = await listTodos();
   const users = adminSession ? await listUsers() : [];
+  const jobs = adminSession ? await listJobs() : [];
 
   const totalTodos = todos.length;
   const completedTodos = todos.filter((todo) => todo.completed).length;
@@ -57,6 +65,12 @@ export default async function DashboardPage() {
             </div>
           ) : null}
         </div>
+
+        {adminSession ? (
+          <div className="mt-4">
+            <JobHistorySection initialJobs={jobs} />
+          </div>
+        ) : null}
       </main>
 
       <PoweredByPromptsFooter />

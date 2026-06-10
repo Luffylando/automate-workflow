@@ -10,6 +10,9 @@ export interface Job {
   agentId?: string;
   agentRunId?: string;
   error?: string;
+  submittedById?: string;
+  submittedByEmail?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Todo {

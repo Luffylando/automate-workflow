@@ -45,5 +45,8 @@ export function toJobDto(job: Job): JobDto {
     agentId: job.agentId ?? undefined,
     agentRunId: job.agentRunId ?? undefined,
     error: job.error ?? undefined,
+    submittedById: job.submittedById ?? undefined,
+    submittedByEmail: job.submittedByEmail ?? undefined,
+    metadata: job.metadata ?? undefined,
   };
 }
