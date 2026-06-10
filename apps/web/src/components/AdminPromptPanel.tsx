@@ -72,13 +72,13 @@ export function AdminPromptPanel() {
   return (
     <div className="fixed right-6 bottom-6 z-50 flex flex-col items-end gap-3">
       {isOpen ? (
-        <section className="flex max-h-[min(32rem,calc(100vh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-violet-200 bg-violet-50 shadow-xl">
-          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-violet-200 px-4 py-3">
+        <section className="flex max-h-[min(32rem,calc(100vh-6rem))] w-[min(24rem,calc(100vw-3rem))] flex-col overflow-hidden rounded-2xl border border-fuchsia-200/70 bg-gradient-to-br from-indigo-50 via-violet-50 to-fuchsia-50 shadow-xl shadow-fuchsia-200/40">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-fuchsia-200/60 bg-white/50 px-4 py-3 backdrop-blur-sm">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+              <p className="text-xs font-semibold uppercase tracking-wide text-fuchsia-700">
                 Admin
               </p>
-              <h2 className="text-base font-semibold text-zinc-900">
+              <h2 className="text-base font-semibold text-indigo-950">
                 Prompt console
               </h2>
             </div>
@@ -89,14 +89,14 @@ export function AdminPromptPanel() {
                   await fetch("/api/auth/logout", { method: "POST" });
                   window.location.href = "/login";
                 }}
-                className="rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-sm text-violet-800 hover:bg-violet-100"
+                className="rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
               >
                 Sign out
               </button>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-sm text-violet-800 hover:bg-violet-100"
+                className="rounded-lg border border-fuchsia-200 bg-white px-3 py-1.5 text-sm font-medium text-fuchsia-700 hover:bg-fuchsia-50"
                 aria-label="Close prompt console"
               >
                 Close
@@ -118,21 +118,21 @@ export function AdminPromptPanel() {
                 onChange={(event) => setPrompt(event.target.value)}
                 rows={4}
                 placeholder="Example: Add a filter bar to the todos list."
-                className="w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none ring-violet-300 focus:ring-2"
+                className="w-full rounded-xl border border-indigo-200 bg-white px-4 py-3 text-sm text-indigo-950 outline-none focus:border-fuchsia-300 focus:ring-2 focus:ring-fuchsia-300/50"
                 required
               />
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <button
                 type="submit"
                 disabled={submitting || !prompt.trim()}
-                className="w-full rounded-xl bg-violet-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-xl brand-gradient-bg px-4 py-2.5 text-sm font-medium text-white shadow-md shadow-fuchsia-300/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? "Submitting..." : "Submit prompt"}
               </button>
             </form>
 
             {activeJob ? (
-              <div className="mt-4 rounded-xl border border-violet-100 bg-white p-4">
+              <div className="mt-4 rounded-xl border border-indigo-100 bg-white/90 p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                   Latest job
                 </p>
@@ -169,7 +169,7 @@ export function AdminPromptPanel() {
                       <dd className="mt-1">
                         <a
                           href={activeJob.prUrl}
-                          className="text-violet-700 underline"
+                          className="font-medium text-fuchsia-700 underline decoration-fuchsia-300 underline-offset-2"
                           target="_blank"
                           rel="noreferrer"
                         >
@@ -208,7 +208,7 @@ export function AdminPromptPanel() {
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-700 text-white shadow-lg transition hover:bg-violet-800"
+        className="flex h-14 w-14 items-center justify-center rounded-full brand-gradient-bg text-white shadow-lg shadow-fuchsia-300/40 transition hover:brightness-110"
         aria-label={isOpen ? "Minimize prompt console" : "Open prompt console"}
         aria-expanded={isOpen}
       >

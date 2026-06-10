@@ -8,17 +8,19 @@ export default async function Home() {
   const [session, todos] = await Promise.all([getSession(), listTodos()]);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
+    <div className="page-gradient flex min-h-full flex-1 flex-col">
+      <header className="border-b border-indigo-200/60 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
           <div>
-            <p className="text-sm font-medium text-zinc-500">Automate Workflow</p>
-            <h1 className="text-xl font-semibold text-zinc-900">Home</h1>
+            <p className="text-sm font-semibold tracking-wide brand-gradient-text">
+              Automate Workflow
+            </p>
+            <h1 className="text-xl font-semibold text-indigo-950">Home</h1>
           </div>
           {session ? null : (
             <Link
               href="/login"
-              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100"
+              className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
             >
               Admin sign in
             </Link>
