@@ -3,6 +3,7 @@ import { requireAdmin } from "../plugins/admin-auth";
 import { processJob } from "../services/agent-runner";
 import { createJob } from "../services/jobs";
 import { checkRateLimit } from "../services/rate-limit";
+import { resolveSubmitterEmail } from "../services/submitter";
 
 const MAX_METADATA_BYTES = 4096;
 
@@ -58,10 +59,20 @@ export async function adminPromptsRoutes(
           });
         }
 
+        const submittedByEmail = await resolveSubmitterEmail(
+          session.sub,
+          session.email,
+        );
+        if (!submittedByEmail) {
+          return reply.status(400).send({
+            error: "Prompter email could not be determined for this session",
+          });
+        }
+
         const job = await createJob({
           prompt,
           submittedById: session.sub,
-          submittedByEmail: session.email,
+          submittedByEmail,
           metadata: {
             ...metadata,
             source: metadata?.source ?? "admin-prompt",

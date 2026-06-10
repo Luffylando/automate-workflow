@@ -2,6 +2,10 @@ import { getDataSource } from "../db/data-source";
 import { Job } from "../db/entities/Job";
 import type { JobDto, JobStatus } from "../types";
 import { toJobDto } from "./mappers";
+import {
+  lookupSubmitterEmailsByIds,
+  resolveSubmitterEmail,
+} from "./submitter";
 
 const DEFAULT_LIST_LIMIT = 50;
 const MAX_LIST_LIMIT = 100;
@@ -37,6 +41,57 @@ function parseUtcDateRange(
   return { start, end };
 }
 
+async function enrichJobDto(job: Job): Promise<JobDto> {
+  const dto = toJobDto(job);
+  const email = await resolveSubmitterEmail(
+    job.submittedById,
+    job.submittedByEmail,
+  );
+
+  if (!email) {
+    return dto;
+  }
+
+  return { ...dto, submittedByEmail: email };
+}
+
+async function enrichJobDtos(jobs: Job[]): Promise<JobDto[]> {
+  const dtos = jobs.map(toJobDto);
+  const idsNeedingEmail = new Set<string>();
+
+  for (let index = 0; index < jobs.length; index += 1) {
+    const job = jobs[index];
+    const dto = dtos[index];
+    if (!dto) {
+      continue;
+    }
+
+    if (!dto.submittedByEmail?.trim() && job?.submittedById) {
+      idsNeedingEmail.add(job.submittedById);
+    }
+  }
+
+  if (idsNeedingEmail.size === 0) {
+    return dtos;
+  }
+
+  const emailsById = await lookupSubmitterEmailsByIds([...idsNeedingEmail]);
+
+  return dtos.map((dto, index) => {
+    if (dto.submittedByEmail?.trim()) {
+      return dto;
+    }
+
+    const submittedById = jobs[index]?.submittedById;
+    if (!submittedById) {
+      return dto;
+    }
+
+    const email = emailsById.get(submittedById);
+    return email ? { ...dto, submittedByEmail: email } : dto;
+  });
+}
+
 export async function createJob(input: CreateJobInput): Promise<JobDto> {
   const dataSource = await getDataSource();
   const repo = dataSource.getRepository(Job);
@@ -52,7 +107,7 @@ export async function createJob(input: CreateJobInput): Promise<JobDto> {
     metadata: input.metadata ?? null,
   });
   const saved = await repo.save(job);
-  return toJobDto(saved);
+  return enrichJobDto(saved);
 }
 
 export async function listJobs(
@@ -89,13 +144,13 @@ export async function listJobs(
   }
 
   const jobs = await query.getMany();
-  return jobs.map(toJobDto);
+  return enrichJobDtos(jobs);
 }
 
 export async function getJob(id: string): Promise<JobDto | null> {
   const dataSource = await getDataSource();
   const job = await dataSource.getRepository(Job).findOne({ where: { id } });
-  return job ? toJobDto(job) : null;
+  return job ? enrichJobDto(job) : null;
 }
 
 export async function updateJobStatus(
@@ -120,5 +175,5 @@ export async function updateJobStatus(
   if ("error" in updates) job.error = updates.error ?? null;
 
   const saved = await repo.save(job);
-  return toJobDto(saved);
+  return enrichJobDto(saved);
 }

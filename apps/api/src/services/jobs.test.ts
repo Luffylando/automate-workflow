@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Job } from "../db/entities/Job";
 import { createJob, listJobs } from "./jobs";
+import { lookupSubmitterEmailsByIds } from "./submitter";
 
 const mockSave = vi.fn();
 const mockCreate = vi.fn();
@@ -19,6 +20,16 @@ vi.mock("../db/data-source", () => ({
   getDataSource: vi.fn(async () => ({
     getRepository: mockGetRepository,
   })),
+}));
+
+vi.mock("./submitter", () => ({
+  resolveSubmitterEmail: vi.fn(
+    async (
+      submittedById: string | null | undefined,
+      submittedByEmail: string | null | undefined,
+    ) => submittedByEmail?.trim() || undefined,
+  ),
+  lookupSubmitterEmailsByIds: vi.fn(async () => new Map()),
 }));
 
 describe("jobs service", () => {
@@ -136,6 +147,37 @@ describe("jobs service", () => {
     expect(result).toHaveLength(2);
     expect(result[0]?.id).toBe("job-2");
     expect(result[1]?.error).toBe("Agent failed");
+  });
+
+  it("backfills missing submitter emails when listing jobs", async () => {
+    const createdAt = new Date("2026-06-10T10:00:00.000Z");
+    const updatedAt = new Date("2026-06-10T10:05:00.000Z");
+    const jobs = [
+      {
+        id: "job-1",
+        prompt: "Legacy prompt",
+        status: "done",
+        prUrl: null,
+        agentId: null,
+        agentRunId: null,
+        error: null,
+        submittedById: "admin-1",
+        submittedByEmail: null,
+        metadata: null,
+        createdAt,
+        updatedAt,
+      },
+    ] as Job[];
+
+    mockGetMany.mockResolvedValue(jobs);
+    vi.mocked(lookupSubmitterEmailsByIds).mockResolvedValue(
+      new Map([["admin-1", "legacy-admin@example.com"]]),
+    );
+
+    const result = await listJobs();
+
+    expect(lookupSubmitterEmailsByIds).toHaveBeenCalledWith(["admin-1"]);
+    expect(result[0]?.submittedByEmail).toBe("legacy-admin@example.com");
   });
 
   it("filters jobs by prompt name and date", async () => {
