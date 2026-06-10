@@ -47,7 +47,11 @@ export default async function Home() {
       </header>
 
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-5 py-10">
-        <TodosSection initialTodos={todos} variant="compact" />
+        <TodosSection
+          initialTodos={todos}
+          variant="compact"
+          canRate={Boolean(session)}
+        />
       </main>
 
       {adminSession ? <AdminPromptPanel /> : null}

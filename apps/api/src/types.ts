@@ -6,6 +6,17 @@ export interface TodoDto {
   completed: boolean;
   createdAt: string;
   updatedAt: string;
+  averageRating?: number | null;
+  ratingCount?: number;
+  myRating?: number | null;
+}
+
+export interface TodoRatingDto {
+  id: string;
+  userId: string;
+  todoId: string;
+  value: number;
+  createdAt: string;
 }
 
 export interface JobDto {

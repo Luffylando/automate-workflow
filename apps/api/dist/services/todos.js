@@ -8,12 +8,29 @@ exports.deleteTodo = deleteTodo;
 const data_source_1 = require("../db/data-source");
 const Todo_1 = require("../db/entities/Todo");
 const mappers_1 = require("./mappers");
-async function listTodos() {
+const todo_ratings_1 = require("./todo-ratings");
+function enrichTodoDto(todo, summaries, userRatings) {
+    const summary = summaries.get(todo.id);
+    const myRating = userRatings.get(todo.id);
+    return {
+        ...todo,
+        averageRating: summary?.averageRating ?? null,
+        ratingCount: summary?.ratingCount ?? 0,
+        myRating: myRating ?? null,
+    };
+}
+async function listTodos(userId) {
     const dataSource = await (0, data_source_1.getDataSource)();
     const todos = await dataSource.getRepository(Todo_1.Todo).find({
         order: { createdAt: "DESC" },
     });
-    return todos.map(mappers_1.toTodoDto);
+    const todoDtos = todos.map(mappers_1.toTodoDto);
+    const todoIds = todoDtos.map((todo) => todo.id);
+    const summaries = await (0, todo_ratings_1.getRatingSummariesForTodos)(todoIds);
+    const userRatings = userId
+        ? await (0, todo_ratings_1.getUserRatingsForTodos)(userId, todoIds)
+        : new Map();
+    return todoDtos.map((todo) => enrichTodoDto(todo, summaries, userRatings));
 }
 async function getTodoById(id) {
     const dataSource = await (0, data_source_1.getDataSource)();
@@ -46,5 +63,9 @@ async function updateTodo(id, updates) {
 async function deleteTodo(id) {
     const dataSource = await (0, data_source_1.getDataSource)();
     const result = await dataSource.getRepository(Todo_1.Todo).delete({ id });
-    return (result.affected ?? 0) > 0;
+    const deleted = (result.affected ?? 0) > 0;
+    if (deleted) {
+        await (0, todo_ratings_1.deleteRatingsForTodo)(id);
+    }
+    return deleted;
 }

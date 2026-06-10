@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { Job } from "../db/entities/Job";
 import { Todo } from "../db/entities/Todo";
+import { TodoRating } from "../db/entities/TodoRating";
 import { User } from "../db/entities/User";
-import { toJobDto, toTodoDto, toUserDto } from "./mappers";
+import { toJobDto, toTodoDto, toTodoRatingDto, toUserDto } from "./mappers";
 
 describe("mappers", () => {
   it("maps a todo entity to dto", () => {
@@ -20,6 +21,24 @@ describe("mappers", () => {
       completed: false,
       createdAt: "2026-06-10T10:00:00.000Z",
       updatedAt: "2026-06-10T10:05:00.000Z",
+    });
+  });
+
+  it("maps a todo rating entity to dto", () => {
+    const rating = {
+      id: "rating-1",
+      userId: "user-1",
+      todoId: "todo-1",
+      value: 5,
+      createdAt: new Date("2026-06-10T10:00:00.000Z"),
+    } as TodoRating;
+
+    expect(toTodoRatingDto(rating)).toEqual({
+      id: "rating-1",
+      userId: "user-1",
+      todoId: "todo-1",
+      value: 5,
+      createdAt: "2026-06-10T10:00:00.000Z",
     });
   });
 

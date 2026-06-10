@@ -45,7 +45,11 @@ export default async function DashboardPage() {
           }
         >
           <div className={adminSession ? "lg:col-span-3" : ""}>
-            <TodosSection initialTodos={todos} variant="compact" />
+            <TodosSection
+              initialTodos={todos}
+              variant="compact"
+              canRate
+            />
           </div>
           {adminSession ? (
             <div className="lg:col-span-2">
