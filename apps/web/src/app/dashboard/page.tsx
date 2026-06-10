@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { DashboardHeader } from "@/components/DashboardHeader";
-import { DashboardStatCard } from "@/components/DashboardStatCard";
+import { DashboardStatsBar } from "@/components/DashboardStatsBar";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
 import { JobHistorySection } from "@/components/JobHistorySection";
 import { TodosSection } from "@/components/TodosSection";
@@ -30,34 +30,25 @@ export default async function DashboardPage() {
   const totalTodos = todos.length;
   const completedTodos = todos.filter((todo) => todo.completed).length;
   const pendingTodos = totalTodos - completedTodos;
-  const activeJobs = jobStats
-    ? jobStats.queued + jobStats.running
-    : 0;
-
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
       <DashboardHeader email={session.email} />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-5">
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-          <DashboardStatCard label="Total tasks" value={totalTodos} accent="indigo" />
-          <DashboardStatCard label="Open" value={pendingTodos} accent="amber" />
-          <DashboardStatCard label="Done" value={completedTodos} accent="emerald" />
-          {adminSession ? (
-            <DashboardStatCard label="Users" value={users.length} accent="fuchsia" />
-          ) : (
-            <DashboardStatCard label="Done %" value={totalTodos ? Math.round((completedTodos / totalTodos) * 100) : 0} accent="fuchsia" />
-          )}
-        </div>
-
-        {adminSession && jobStats ? (
-          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-            <DashboardStatCard label="Total prompts" value={jobStats.total} accent="indigo" />
-            <DashboardStatCard label="Active" value={activeJobs} accent="amber" />
-            <DashboardStatCard label="Done" value={jobStats.done} accent="emerald" />
-            <DashboardStatCard label="Failed" value={jobStats.failed} accent="fuchsia" />
-          </div>
-        ) : null}
+        <DashboardStatsBar
+          totalTodos={totalTodos}
+          pendingTodos={pendingTodos}
+          completedTodos={completedTodos}
+          usersCount={adminSession ? users.length : undefined}
+          donePercent={
+            adminSession
+              ? undefined
+              : totalTodos
+                ? Math.round((completedTodos / totalTodos) * 100)
+                : 0
+          }
+          jobStats={adminSession ? jobStats : null}
+        />
 
         <div
           className={
