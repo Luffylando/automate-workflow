@@ -2,12 +2,12 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { config } from "../config";
 import { Job } from "./entities/Job";
-import { User } from "./entities/User";
+import { Todo } from "./entities/Todo";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
   url: config.databaseUrl,
-  entities: [User, Job],
+  entities: [Todo, Job],
   synchronize: true,
   logging: false,
 });

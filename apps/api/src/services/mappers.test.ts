@@ -1,22 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { Job } from "../db/entities/Job";
-import { User } from "../db/entities/User";
-import { toJobDto, toUserDto } from "./mappers";
+import { Todo } from "../db/entities/Todo";
+import { toJobDto, toTodoDto } from "./mappers";
 
 describe("mappers", () => {
-  it("maps a user entity to dto", () => {
-    const user = {
-      id: "user-1",
-      name: "Alex Rivera",
-      email: "alex@example.com",
+  it("maps a todo entity to dto", () => {
+    const todo = {
+      id: "todo-1",
+      title: "Write tests",
+      completed: false,
       createdAt: new Date("2026-06-10T10:00:00.000Z"),
-    } as User;
+      updatedAt: new Date("2026-06-10T10:05:00.000Z"),
+    } as Todo;
 
-    expect(toUserDto(user)).toEqual({
-      id: "user-1",
-      name: "Alex Rivera",
-      email: "alex@example.com",
+    expect(toTodoDto(todo)).toEqual({
+      id: "todo-1",
+      title: "Write tests",
+      completed: false,
       createdAt: "2026-06-10T10:00:00.000Z",
+      updatedAt: "2026-06-10T10:05:00.000Z",
     });
   });
 

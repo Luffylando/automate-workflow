@@ -3,19 +3,23 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
-@Entity("users")
-export class User {
+@Entity("todos")
+export class Todo {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @Column()
-  name!: string;
+  title!: string;
 
-  @Column({ unique: true })
-  email!: string;
+  @Column({ default: false })
+  completed!: boolean;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;
+
+  @UpdateDateColumn({ type: "timestamptz" })
+  updatedAt!: Date;
 }

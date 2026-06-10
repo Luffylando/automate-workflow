@@ -1,13 +1,14 @@
 import { Job } from "../db/entities/Job";
-import { User } from "../db/entities/User";
-import type { JobDto, UserDto } from "../types";
+import { Todo } from "../db/entities/Todo";
+import type { JobDto, TodoDto } from "../types";
 
-export function toUserDto(user: User): UserDto {
+export function toTodoDto(todo: Todo): TodoDto {
   return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    createdAt: user.createdAt.toISOString(),
+    id: todo.id,
+    title: todo.title,
+    completed: todo.completed,
+    createdAt: todo.createdAt.toISOString(),
+    updatedAt: todo.updatedAt.toISOString(),
   };
 }
 

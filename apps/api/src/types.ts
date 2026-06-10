@@ -1,10 +1,11 @@
 export type JobStatus = "queued" | "running" | "done" | "failed";
 
-export interface UserDto {
+export interface TodoDto {
   id: string;
-  name: string;
-  email: string;
+  title: string;
+  completed: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface JobDto {

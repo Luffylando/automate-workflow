@@ -53,13 +53,17 @@ Open [http://localhost:3000](http://localhost:3000), sign in at `/login`, and su
 | `/api/auth/login` | POST | Public | Admin sign-in |
 | `/api/auth/logout` | POST | Public | Clear session |
 | `/api/auth/me` | GET | Public | Current session |
-| `/api/users` | GET | Public | List users from Postgres |
+| `/api/todos` | GET | Public | List todos from Postgres |
+| `/api/todos` | POST | Public | Create a todo |
+| `/api/todos/:id` | GET | Public | Get a todo |
+| `/api/todos/:id` | PATCH | Public | Update a todo |
+| `/api/todos/:id` | DELETE | Public | Delete a todo |
 | `/api/admin/prompts` | POST | Admin | Submit prompt → `{ jobId }` |
 | `/api/jobs/:id` | GET | Admin | Poll job status |
 
 ## Database
 
-Users and jobs are stored in PostgreSQL via TypeORM.
+Todos and jobs are stored in PostgreSQL via TypeORM.
 
 ```bash
 pnpm db:up    # start Postgres

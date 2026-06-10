@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { AdminPromptPanel } from "@/components/AdminPromptPanel";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
-import { UsersList } from "@/components/UsersList";
-import { getSession, listUsers } from "@/lib/server-api";
+import { TodosSection } from "@/components/TodosSection";
+import { getSession, listTodos } from "@/lib/server-api";
 
 export default async function Home() {
-  const [session, users] = await Promise.all([getSession(), listUsers()]);
+  const [session, todos] = await Promise.all([getSession(), listTodos()]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50">
@@ -26,11 +26,12 @@ export default async function Home() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-16">
-        <UsersList users={users} />
-
-        {session ? <AdminPromptPanel /> : null}
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-16">
+        <TodosSection initialTodos={todos} />
       </main>
+
+      {session ? <AdminPromptPanel /> : null}
+
       <PoweredByPromptsFooter />
     </div>
   );

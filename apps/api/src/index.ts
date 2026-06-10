@@ -4,16 +4,14 @@ import cookie from "@fastify/cookie";
 import Fastify from "fastify";
 import { config } from "./config";
 import { getDataSource } from "./db/data-source";
-import { seedUsers } from "./db/seed";
 import { registerAdminAuth } from "./plugins/admin-auth";
 import { adminPromptsRoutes } from "./routes/admin-prompts";
 import { authRoutes } from "./routes/auth";
 import { jobsRoutes } from "./routes/jobs";
-import { usersRoutes } from "./routes/users";
+import { todosRoutes } from "./routes/todos";
 
 async function start(): Promise<void> {
   await getDataSource();
-  await seedUsers();
 
   const fastify = Fastify({ logger: true });
 
@@ -21,7 +19,7 @@ async function start(): Promise<void> {
   registerAdminAuth(fastify);
 
   await fastify.register(authRoutes);
-  await fastify.register(usersRoutes);
+  await fastify.register(todosRoutes);
   await fastify.register(jobsRoutes);
   await fastify.register(adminPromptsRoutes);
 

@@ -12,11 +12,12 @@ export interface Job {
   error?: string;
 }
 
-export interface User {
+export interface Todo {
   id: string;
-  name: string;
-  email: string;
+  title: string;
+  completed: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface AdminSession {
