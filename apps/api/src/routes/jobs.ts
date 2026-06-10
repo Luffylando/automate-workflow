@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { requireAdmin } from "../plugins/admin-auth";
-import { getJob, listJobs } from "../services/jobs";
+import { getJob, getJobStats, listJobs } from "../services/jobs";
 
 export async function jobsRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get(
@@ -38,6 +38,21 @@ export async function jobsRoutes(fastify: FastifyInstance): Promise<void> {
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Failed to fetch jobs";
+        return reply.status(500).send({ error: message });
+      }
+    },
+  );
+
+  fastify.get(
+    "/api/jobs/stats",
+    { preHandler: requireAdmin },
+    async (_request, reply) => {
+      try {
+        const stats = await getJobStats();
+        return { stats };
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to fetch job stats";
         return reply.status(500).send({ error: message });
       }
     },

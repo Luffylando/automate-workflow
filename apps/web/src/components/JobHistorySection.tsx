@@ -69,6 +69,31 @@ function hasActiveFilters(filters: JobFilters): boolean {
   return Boolean(filters.prompt.trim() || filters.date.trim());
 }
 
+function countJobsByStatus(jobs: Job[]) {
+  let done = 0;
+  let active = 0;
+  let failed = 0;
+
+  for (const job of jobs) {
+    if (job.status === "done") {
+      done += 1;
+    } else if (job.status === "failed") {
+      failed += 1;
+    } else {
+      active += 1;
+    }
+  }
+
+  return { done, active, failed };
+}
+
+function formatJobStatsSubtitle(jobs: Job[]): string {
+  const { done, active, failed } = countJobsByStatus(jobs);
+  const promptLabel = jobs.length === 1 ? "prompt" : "prompts";
+
+  return `${jobs.length} ${promptLabel} · ${done} done · ${active} active · ${failed} failed`;
+}
+
 export function JobHistorySection({ initialJobs }: JobHistorySectionProps) {
   const [jobs, setJobs] = useState(initialJobs);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -124,8 +149,7 @@ export function JobHistorySection({ initialJobs }: JobHistorySectionProps) {
             Prompt job history
           </h2>
           <p className={`text-xs ${TEXT_SUBTLE_CLASS}`}>
-            {jobs.length} job{jobs.length === 1 ? "" : "s"} tracked by prompt
-            ID
+            {formatJobStatsSubtitle(jobs)}
           </p>
         </div>
 

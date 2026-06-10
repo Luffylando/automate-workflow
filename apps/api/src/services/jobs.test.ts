@@ -1,17 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Job } from "../db/entities/Job";
-import { createJob, listJobs } from "./jobs";
+import { createJob, getJobStats, listJobs } from "./jobs";
 import { lookupSubmitterEmailsByIds } from "./submitter";
 
 const mockSave = vi.fn();
 const mockCreate = vi.fn();
 const mockGetMany = vi.fn();
+const mockGetRawMany = vi.fn();
 const mockQueryBuilder = {
   orderBy: vi.fn(),
   take: vi.fn(),
   skip: vi.fn(),
   andWhere: vi.fn(),
+  select: vi.fn(),
+  addSelect: vi.fn(),
+  groupBy: vi.fn(),
   getMany: mockGetMany,
+  getRawMany: mockGetRawMany,
 };
 const mockCreateQueryBuilder = vi.fn();
 const mockGetRepository = vi.fn();
@@ -39,6 +44,9 @@ describe("jobs service", () => {
     mockQueryBuilder.take.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.skip.mockReturnValue(mockQueryBuilder);
     mockQueryBuilder.andWhere.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.select.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.addSelect.mockReturnValue(mockQueryBuilder);
+    mockQueryBuilder.groupBy.mockReturnValue(mockQueryBuilder);
     mockCreateQueryBuilder.mockReturnValue(mockQueryBuilder);
     mockGetRepository.mockReturnValue({
       create: mockCreate,
@@ -178,6 +186,32 @@ describe("jobs service", () => {
 
     expect(lookupSubmitterEmailsByIds).toHaveBeenCalledWith(["admin-1"]);
     expect(result[0]?.submittedByEmail).toBe("legacy-admin@example.com");
+  });
+
+  it("aggregates job counts by status", async () => {
+    mockGetRawMany.mockResolvedValue([
+      { status: "done", count: "12" },
+      { status: "running", count: "2" },
+      { status: "queued", count: "1" },
+      { status: "failed", count: "3" },
+    ]);
+
+    const result = await getJobStats();
+
+    expect(mockCreateQueryBuilder).toHaveBeenCalledWith("job");
+    expect(mockQueryBuilder.select).toHaveBeenCalledWith("job.status", "status");
+    expect(mockQueryBuilder.addSelect).toHaveBeenCalledWith(
+      "COUNT(job.id)",
+      "count",
+    );
+    expect(mockQueryBuilder.groupBy).toHaveBeenCalledWith("job.status");
+    expect(result).toEqual({
+      total: 18,
+      queued: 1,
+      running: 2,
+      done: 12,
+      failed: 3,
+    });
   });
 
   it("filters jobs by prompt name and date", async () => {

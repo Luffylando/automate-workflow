@@ -19,6 +19,14 @@ export interface TodoRatingDto {
   createdAt: string;
 }
 
+export interface JobStatsDto {
+  total: number;
+  queued: number;
+  running: number;
+  done: number;
+  failed: number;
+}
+
 export interface JobDto {
   id: string;
   prompt: string;

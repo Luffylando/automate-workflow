@@ -46,7 +46,7 @@ describe("JobHistorySection", () => {
     expect(
       screen.getByRole("heading", { name: "Prompt job history" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("2 jobs tracked by prompt ID")).toBeInTheDocument();
+    expect(screen.getByText("2 prompts · 1 done · 1 active · 0 failed")).toBeInTheDocument();
     expect(screen.getByText("job-abc-123")).toBeInTheDocument();
     expect(screen.getByText("job-def-456")).toBeInTheDocument();
     expect(screen.getByText(/admin@example\.com/)).toBeInTheDocument();
