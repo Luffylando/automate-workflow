@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAdminAuth = registerAdminAuth;
 exports.requireAdmin = requireAdmin;
+exports.requireAuth = requireAuth;
 const auth_1 = require("../services/auth");
 function registerAdminAuth(fastify) {
     fastify.decorateRequest("adminSession", null);
@@ -13,6 +14,11 @@ function registerAdminAuth(fastify) {
     });
 }
 async function requireAdmin(request, reply) {
+    if (!request.adminSession || request.adminSession.role !== "admin") {
+        return reply.status(401).send({ error: "Unauthorized" });
+    }
+}
+async function requireAuth(request, reply) {
     if (!request.adminSession) {
         return reply.status(401).send({ error: "Unauthorized" });
     }

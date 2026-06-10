@@ -13,6 +13,11 @@ vi.mock("../db/data-source", () => ({
   })),
 }));
 
+vi.mock("./password", () => ({
+  hashPassword: vi.fn(async () => "salt:hashed"),
+  verifyPassword: vi.fn(),
+}));
+
 describe("users service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -23,12 +28,13 @@ describe("users service", () => {
     });
   });
 
-  it("creates a user with name, email, and role", async () => {
+  it("creates a user with name, email, password, and role", async () => {
     const createdAt = new Date("2026-06-10T10:00:00.000Z");
     const entity = {
       id: "user-1",
       name: "Alex Rivera",
       email: "alex@example.com",
+      passwordHash: "salt:hashed",
       role: "user",
       createdAt,
     } as User;
@@ -39,12 +45,14 @@ describe("users service", () => {
     const result = await createUser({
       name: "Alex Rivera",
       email: "Alex@Example.com",
+      password: "password123",
       role: "user",
     });
 
     expect(mockCreate).toHaveBeenCalledWith({
       name: "Alex Rivera",
       email: "alex@example.com",
+      passwordHash: "salt:hashed",
       role: "user",
     });
     expect(mockSave).toHaveBeenCalledWith(entity);
@@ -55,6 +63,16 @@ describe("users service", () => {
       role: "user",
       createdAt: createdAt.toISOString(),
     });
+  });
+
+  it("rejects short passwords", async () => {
+    await expect(
+      createUser({
+        name: "Alex Rivera",
+        email: "alex@example.com",
+        password: "short",
+      }),
+    ).rejects.toThrow("Password must be at least 8 characters");
   });
 
   it("updates a user role", async () => {

@@ -18,6 +18,7 @@ export function UsersSection({ initialUsers }: UsersSectionProps) {
   const [users, setUsers] = useState(initialUsers);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("user");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +29,7 @@ export function UsersSection({ initialUsers }: UsersSectionProps) {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
 
-    if (!trimmedName || !trimmedEmail) {
+    if (!trimmedName || !trimmedEmail || !password) {
       return;
     }
 
@@ -42,6 +43,7 @@ export function UsersSection({ initialUsers }: UsersSectionProps) {
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
+          password,
           role,
         }),
       });
@@ -57,6 +59,7 @@ export function UsersSection({ initialUsers }: UsersSectionProps) {
       setUsers((current) => [data as User, ...current]);
       setName("");
       setEmail("");
+      setPassword("");
       setRole("user");
     } catch (createError) {
       setError(
@@ -114,7 +117,7 @@ export function UsersSection({ initialUsers }: UsersSectionProps) {
         </div>
         <h2 className="text-2xl font-semibold brand-gradient-text">Users</h2>
         <p className="mt-1 text-indigo-900/70">
-          Create users and assign roles. Admin-only.
+          Create users with login credentials and assign roles. Admin-only.
         </p>
       </div>
 
@@ -138,6 +141,17 @@ export function UsersSection({ initialUsers }: UsersSectionProps) {
             aria-label="New user email"
             required
           />
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Password (min 8 characters)"
+            minLength={8}
+            autoComplete="new-password"
+            className="rounded-xl border border-indigo-200 bg-indigo-50/40 px-4 py-2.5 text-sm text-indigo-950 outline-none placeholder:text-indigo-400 focus:border-violet-300 focus:ring-2 focus:ring-violet-300/50 sm:col-span-2"
+            aria-label="New user password"
+            required
+          />
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm font-medium text-indigo-900">
@@ -157,7 +171,12 @@ export function UsersSection({ initialUsers }: UsersSectionProps) {
           </label>
           <button
             type="submit"
-            disabled={submitting || !name.trim() || !email.trim()}
+            disabled={
+              submitting ||
+              !name.trim() ||
+              !email.trim() ||
+              password.length < 8
+            }
             className="rounded-xl brand-gradient-bg px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-indigo-300/40 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Creating..." : "Create user"}

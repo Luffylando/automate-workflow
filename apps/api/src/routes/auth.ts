@@ -6,6 +6,7 @@ import {
   SESSION_MAX_AGE_SECONDS,
   createSessionToken,
 } from "../services/auth";
+import { verifyUserCredentials } from "../services/users";
 
 export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.post<{ Body: { email?: string; password?: string } }>(
@@ -20,21 +21,49 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
           .send({ error: "Email and password are required" });
       }
 
-      const admin = await verifyAdminCredentials(email, password);
-      if (!admin) {
-        return reply.status(401).send({ error: "Invalid credentials" });
+      const appUser = await verifyUserCredentials(email, password);
+      if (appUser) {
+        const token = await createSessionToken(
+          appUser.id,
+          appUser.email,
+          appUser.role,
+        );
+        reply.setCookie(SESSION_COOKIE, token, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: config.isProduction,
+          path: "/",
+          maxAge: SESSION_MAX_AGE_SECONDS,
+        });
+
+        return {
+          ok: true,
+          user: { id: appUser.id, email: appUser.email, role: appUser.role },
+        };
       }
 
-      const token = await createSessionToken(admin.id, admin.email);
-      reply.setCookie(SESSION_COOKIE, token, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: config.isProduction,
-        path: "/",
-        maxAge: SESSION_MAX_AGE_SECONDS,
-      });
+      const legacyAdmin = await verifyAdminCredentials(email, password);
+      if (legacyAdmin) {
+        const token = await createSessionToken(
+          legacyAdmin.id,
+          legacyAdmin.email,
+          "admin",
+        );
+        reply.setCookie(SESSION_COOKIE, token, {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: config.isProduction,
+          path: "/",
+          maxAge: SESSION_MAX_AGE_SECONDS,
+        });
 
-      return { ok: true, admin: { id: admin.id, email: admin.email } };
+        return {
+          ok: true,
+          user: { id: legacyAdmin.id, email: legacyAdmin.email, role: "admin" },
+        };
+      }
+
+      return reply.status(401).send({ error: "Invalid credentials" });
     },
   );
 
@@ -45,11 +74,13 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
   fastify.get("/api/auth/me", async (request) => {
     if (!request.adminSession) {
-      return { admin: false };
+      return { authenticated: false, admin: false };
     }
 
     return {
-      admin: true,
+      authenticated: true,
+      admin: request.adminSession.role === "admin",
+      role: request.adminSession.role,
       sub: request.adminSession.sub,
       email: request.adminSession.email,
     };

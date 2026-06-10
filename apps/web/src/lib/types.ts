@@ -30,8 +30,11 @@ export interface User {
   createdAt: string;
 }
 
-export interface AdminSession {
-  role: "admin";
+export interface AuthSession {
+  role: UserRole;
   sub: string;
   email: string;
 }
+
+/** @deprecated Use AuthSession */
+export type AdminSession = AuthSession;

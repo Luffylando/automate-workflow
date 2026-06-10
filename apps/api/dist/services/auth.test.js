@@ -44,8 +44,8 @@ vitest_1.vi.mock("../config", () => ({
     (0, vitest_1.afterEach)(() => {
         vitest_1.vi.unstubAllGlobals();
     });
-    (0, vitest_1.it)("creates and verifies a JWT session token", async () => {
-        const token = await (0, auth_1.createSessionToken)("admin-user-id", "admin@example.com");
+    (0, vitest_1.it)("creates and verifies an admin JWT session token", async () => {
+        const token = await (0, auth_1.createSessionToken)("admin-user-id", "admin@example.com", "admin");
         const session = await (0, auth_1.verifySessionToken)(token);
         (0, vitest_1.expect)(session).toEqual({
             role: "admin",
@@ -53,9 +53,18 @@ vitest_1.vi.mock("../config", () => ({
             email: "admin@example.com",
         });
     });
-    (0, vitest_1.it)("rejects tokens with the wrong role", async () => {
+    (0, vitest_1.it)("creates and verifies a user JWT session token", async () => {
+        const token = await (0, auth_1.createSessionToken)("user-id", "user@example.com", "user");
+        const session = await (0, auth_1.verifySessionToken)(token);
+        (0, vitest_1.expect)(session).toEqual({
+            role: "user",
+            sub: "user-id",
+            email: "user@example.com",
+        });
+    });
+    (0, vitest_1.it)("rejects tokens with an invalid role", async () => {
         const { SignJWT } = await Promise.resolve().then(() => __importStar(require("jose")));
-        const token = await new SignJWT({ role: "user", sub: "123" })
+        const token = await new SignJWT({ role: "superuser", sub: "123" })
             .setProtectedHeader({ alg: "HS256" })
             .setIssuedAt()
             .setExpirationTime("1h")

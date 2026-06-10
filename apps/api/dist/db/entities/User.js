@@ -15,6 +15,7 @@ let User = class User {
     id;
     name;
     email;
+    passwordHash;
     role;
     createdAt;
 };
@@ -24,13 +25,17 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "varchar", length: 200 }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 255 }),
     __metadata("design:type", String)
 ], User.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: "varchar", length: 320, unique: true }),
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, unique: true }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 255, nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "passwordHash", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 50, default: "user" }),
     __metadata("design:type", String)

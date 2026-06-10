@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
-import type { AdminSession, Todo, User } from "./types";
+import type { AuthSession, Todo, User, UserRole } from "./types";
 import { getApiUrl } from "./api-url";
 
-export async function getSession(): Promise<AdminSession | null> {
+export async function getSession(): Promise<AuthSession | null> {
   const cookieStore = await cookies();
   const response = await fetch(`${getApiUrl()}/api/auth/me`, {
     headers: { cookie: cookieStore.toString() },
@@ -14,19 +14,29 @@ export async function getSession(): Promise<AdminSession | null> {
   }
 
   const data = (await response.json()) as {
-    admin?: boolean;
+    authenticated?: boolean;
+    role?: UserRole;
     sub?: string;
     email?: string;
   };
-  if (!data.admin) {
+
+  if (!data.authenticated || !data.role) {
     return null;
   }
 
   return {
-    role: "admin",
-    sub: data.sub ?? "admin",
-    email: data.email ?? "admin@localhost",
+    role: data.role,
+    sub: data.sub ?? "unknown",
+    email: data.email ?? "unknown",
   };
+}
+
+export async function getAdminSession(): Promise<AuthSession | null> {
+  const session = await getSession();
+  if (!session || session.role !== "admin") {
+    return null;
+  }
+  return session;
 }
 
 export async function listTodos(): Promise<Todo[]> {

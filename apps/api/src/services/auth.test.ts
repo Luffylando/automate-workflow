@@ -16,10 +16,11 @@ describe("auth service", () => {
     vi.unstubAllGlobals();
   });
 
-  it("creates and verifies a JWT session token", async () => {
+  it("creates and verifies an admin JWT session token", async () => {
     const token = await createSessionToken(
       "admin-user-id",
       "admin@example.com",
+      "admin",
     );
 
     const session = await verifySessionToken(token);
@@ -30,9 +31,24 @@ describe("auth service", () => {
     });
   });
 
-  it("rejects tokens with the wrong role", async () => {
+  it("creates and verifies a user JWT session token", async () => {
+    const token = await createSessionToken(
+      "user-id",
+      "user@example.com",
+      "user",
+    );
+
+    const session = await verifySessionToken(token);
+    expect(session).toEqual({
+      role: "user",
+      sub: "user-id",
+      email: "user@example.com",
+    });
+  });
+
+  it("rejects tokens with an invalid role", async () => {
     const { SignJWT } = await import("jose");
-    const token = await new SignJWT({ role: "user", sub: "123" })
+    const token = await new SignJWT({ role: "superuser", sub: "123" })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
       .setExpirationTime("1h")

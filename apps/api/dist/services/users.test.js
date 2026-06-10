@@ -11,6 +11,10 @@ vitest_1.vi.mock("../db/data-source", () => ({
         getRepository: mockGetRepository,
     })),
 }));
+vitest_1.vi.mock("./password", () => ({
+    hashPassword: vitest_1.vi.fn(async () => "salt:hashed"),
+    verifyPassword: vitest_1.vi.fn(),
+}));
 (0, vitest_1.describe)("users service", () => {
     (0, vitest_1.beforeEach)(() => {
         vitest_1.vi.clearAllMocks();
@@ -20,12 +24,13 @@ vitest_1.vi.mock("../db/data-source", () => ({
             findOne: mockFindOne,
         });
     });
-    (0, vitest_1.it)("creates a user with name, email, and role", async () => {
+    (0, vitest_1.it)("creates a user with name, email, password, and role", async () => {
         const createdAt = new Date("2026-06-10T10:00:00.000Z");
         const entity = {
             id: "user-1",
             name: "Alex Rivera",
             email: "alex@example.com",
+            passwordHash: "salt:hashed",
             role: "user",
             createdAt,
         };
@@ -34,11 +39,13 @@ vitest_1.vi.mock("../db/data-source", () => ({
         const result = await (0, users_1.createUser)({
             name: "Alex Rivera",
             email: "Alex@Example.com",
+            password: "password123",
             role: "user",
         });
         (0, vitest_1.expect)(mockCreate).toHaveBeenCalledWith({
             name: "Alex Rivera",
             email: "alex@example.com",
+            passwordHash: "salt:hashed",
             role: "user",
         });
         (0, vitest_1.expect)(mockSave).toHaveBeenCalledWith(entity);
@@ -49,6 +56,13 @@ vitest_1.vi.mock("../db/data-source", () => ({
             role: "user",
             createdAt: createdAt.toISOString(),
         });
+    });
+    (0, vitest_1.it)("rejects short passwords", async () => {
+        await (0, vitest_1.expect)((0, users_1.createUser)({
+            name: "Alex Rivera",
+            email: "alex@example.com",
+            password: "short",
+        })).rejects.toThrow("Password must be at least 8 characters");
     });
     (0, vitest_1.it)("updates a user role", async () => {
         const createdAt = new Date("2026-06-10T10:00:00.000Z");

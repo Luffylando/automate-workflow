@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { LogoutButton } from "@/components/LogoutButton";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
 import { TodosSection } from "@/components/TodosSection";
 import { UsersSection } from "@/components/UsersSection";
-import { getSession, listTodos, listUsers } from "@/lib/server-api";
+import { getAdminSession, getSession, listTodos, listUsers } from "@/lib/server-api";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -12,7 +13,9 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const [todos, users] = await Promise.all([listTodos(), listUsers()]);
+  const adminSession = await getAdminSession();
+  const todos = await listTodos();
+  const users = adminSession ? await listUsers() : [];
 
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
@@ -34,13 +37,14 @@ export default async function DashboardPage() {
             >
               Home
             </Link>
+            <LogoutButton />
           </div>
         </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-16">
         <TodosSection initialTodos={todos} />
-        <UsersSection initialUsers={users} />
+        {adminSession ? <UsersSection initialUsers={users} /> : null}
       </main>
 
       <PoweredByPromptsFooter />

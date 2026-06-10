@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { AdminPromptPanel } from "@/components/AdminPromptPanel";
+import { LogoutButton } from "@/components/LogoutButton";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
 import { TodosSection } from "@/components/TodosSection";
-import { getSession, listTodos } from "@/lib/server-api";
+import { getAdminSession, getSession, listTodos } from "@/lib/server-api";
 
 export default async function Home() {
-  const [session, todos] = await Promise.all([getSession(), listTodos()]);
+  const [session, adminSession, todos] = await Promise.all([
+    getSession(),
+    getAdminSession(),
+    listTodos(),
+  ]);
 
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
@@ -18,12 +23,18 @@ export default async function Home() {
             <h1 className="text-xl font-semibold text-indigo-950">Home</h1>
           </div>
           {session ? (
-            <Link
-              href="/dashboard"
-              className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:border-violet-200 hover:bg-violet-50"
-            >
-              Dashboard
-            </Link>
+            <div className="flex items-center gap-3">
+              <span className="hidden text-sm text-indigo-700 sm:inline">
+                {session.email}
+              </span>
+              <Link
+                href="/dashboard"
+                className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:border-violet-200 hover:bg-violet-50"
+              >
+                Dashboard
+              </Link>
+              <LogoutButton />
+            </div>
           ) : (
             <Link
               href="/login"
@@ -39,7 +50,7 @@ export default async function Home() {
         <TodosSection initialTodos={todos} />
       </main>
 
-      {session ? <AdminPromptPanel /> : null}
+      {adminSession ? <AdminPromptPanel /> : null}
 
       <PoweredByPromptsFooter />
     </div>

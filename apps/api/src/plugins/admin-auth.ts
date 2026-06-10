@@ -4,11 +4,11 @@ import {
   extractBearerToken,
   verifySessionToken,
 } from "../services/auth";
-import type { AdminSession } from "../types";
+import type { AuthSession } from "../types";
 
 declare module "fastify" {
   interface FastifyRequest {
-    adminSession: AdminSession | null;
+    adminSession: AuthSession | null;
   }
 }
 
@@ -25,6 +25,15 @@ export function registerAdminAuth(fastify: FastifyInstance): void {
 }
 
 export async function requireAdmin(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<void> {
+  if (!request.adminSession || request.adminSession.role !== "admin") {
+    return reply.status(401).send({ error: "Unauthorized" });
+  }
+}
+
+export async function requireAuth(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> {

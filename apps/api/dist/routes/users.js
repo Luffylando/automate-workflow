@@ -31,22 +31,27 @@ async function usersRoutes(fastify) {
         try {
             const name = request.body.name?.trim();
             const email = request.body.email?.trim();
+            const password = request.body.password ?? "";
             const role = request.body.role?.trim();
             if (!name) {
                 return reply.status(400).send({ error: "Name is required" });
             }
-            if (name.length > 200) {
+            if (name.length > 255) {
                 return reply
                     .status(400)
-                    .send({ error: "Name must be 200 characters or fewer" });
+                    .send({ error: "Name must be 255 characters or fewer" });
             }
             if (!email) {
                 return reply.status(400).send({ error: "Email is required" });
             }
-            if (email.length > 320) {
+            if (email.length > 255) {
                 return reply
                     .status(400)
-                    .send({ error: "Email must be 320 characters or fewer" });
+                    .send({ error: "Email must be 255 characters or fewer" });
+            }
+            const passwordError = (0, users_1.validatePassword)(password);
+            if (passwordError) {
+                return reply.status(400).send({ error: passwordError });
             }
             if (role !== undefined && !(0, users_1.isValidUserRole)(role)) {
                 return reply.status(400).send({ error: "Invalid role" });
@@ -58,6 +63,7 @@ async function usersRoutes(fastify) {
             const user = await (0, users_1.createUser)({
                 name,
                 email,
+                password,
                 role: role,
             });
             return reply.status(201).send(user);

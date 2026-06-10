@@ -82,26 +82,14 @@ export function AdminPromptPanel() {
                 Prompt console
               </h2>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  await fetch("/api/auth/logout", { method: "POST" });
-                  window.location.href = "/login";
-                }}
-                className="rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
-              >
-                Sign out
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="rounded-lg border border-fuchsia-200 bg-white px-3 py-1.5 text-sm font-medium text-fuchsia-700 hover:bg-fuchsia-50"
-                aria-label="Close prompt console"
-              >
-                Close
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="rounded-lg border border-fuchsia-200 bg-white px-3 py-1.5 text-sm font-medium text-fuchsia-700 hover:bg-fuchsia-50"
+              aria-label="Close prompt console"
+            >
+              Close
+            </button>
           </div>
 
           <div className="overflow-y-auto p-4">

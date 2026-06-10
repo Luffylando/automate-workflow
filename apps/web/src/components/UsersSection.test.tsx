@@ -55,6 +55,10 @@ describe("UsersSection", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "New user email" }), {
       target: { value: "jordan@example.com" },
     });
+    fireEvent.change(
+      screen.getByLabelText("New user password"),
+      { target: { value: "password123" } },
+    );
     fireEvent.change(screen.getByRole("combobox", { name: "New user role" }), {
       target: { value: "admin" },
     });
@@ -67,6 +71,7 @@ describe("UsersSection", () => {
         body: JSON.stringify({
           name: "Jordan Lee",
           email: "jordan@example.com",
+          password: "password123",
           role: "admin",
         }),
       });
