@@ -1,34 +1,55 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f5f3ff;
   --foreground: #1e1b4b;
+  --foreground-muted: #4338ca;
+  --foreground-subtle: #818cf8;
+  --border: rgb(199 210 254 / 0.55);
+  --border-muted: rgb(224 231 255 / 0.8);
   --brand-from: #6366f1;
   --brand-via: #8b5cf6;
   --brand-to: #ec4899;
   --surface: #ffffff;
   --surface-muted: #faf5ff;
+  --input-bg: rgb(238 242 255 / 0.45);
+  --shadow-indigo: rgb(99 102 241 / 0.08);
+  --shadow-violet: rgb(139 92 246 / 0.12);
+  --shadow-ring: rgb(196 181 253 / 0.35);
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --foreground-muted: #a5b4fc;
+  --foreground-subtle: #6366f1;
+  --border: rgb(99 102 241 / 0.25);
+  --border-muted: rgb(99 102 241 / 0.15);
+  --surface: #1e293b;
+  --surface-muted: #312e81;
+  --input-bg: rgb(30 41 59 / 0.85);
+  --shadow-indigo: rgb(15 23 42 / 0.5);
+  --shadow-violet: rgb(49 46 129 / 0.35);
+  --shadow-ring: rgb(99 102 241 / 0.2);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--foreground-muted);
+  --color-subtle: var(--foreground-subtle);
+  --color-border: var(--border);
+  --color-border-muted: var(--border-muted);
   --color-brand-from: var(--brand-from);
   --color-brand-via: var(--brand-via);
   --color-brand-to: var(--brand-to);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
+  --color-input: var(--input-bg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #e2e8f0;
-    --surface: #1e293b;
-    --surface-muted: #312e81;
-  }
 }
 
 body {
@@ -43,6 +64,14 @@ body {
     radial-gradient(circle at top right, rgb(252 231 243 / 0.85), transparent 40%),
     radial-gradient(circle at bottom, rgb(204 251 241 / 0.7), transparent 50%),
     linear-gradient(to bottom, #f5f3ff, #ecfeff 55%, #fdf2f8);
+}
+
+.dark .page-gradient {
+  background:
+    radial-gradient(circle at top left, rgb(49 46 129 / 0.45), transparent 45%),
+    radial-gradient(circle at top right, rgb(88 28 135 / 0.35), transparent 40%),
+    radial-gradient(circle at bottom, rgb(15 118 110 / 0.2), transparent 50%),
+    linear-gradient(to bottom, #0f172a, #1e1b4b 55%, #0f172a);
 }
 
 .brand-gradient-text {
@@ -68,18 +97,18 @@ body {
 
 .card-glow {
   box-shadow:
-    0 1px 2px rgb(99 102 241 / 0.08),
-    0 8px 24px rgb(139 92 246 / 0.12),
-    0 0 0 1px rgb(196 181 253 / 0.35);
+    0 1px 2px var(--shadow-indigo),
+    0 8px 24px var(--shadow-violet),
+    0 0 0 1px var(--shadow-ring);
 }
 
 .dashboard-panel {
   box-shadow:
-    0 1px 2px rgb(99 102 241 / 0.06),
-    0 4px 12px rgb(139 92 246 / 0.08),
-    0 0 0 1px rgb(196 181 253 / 0.25);
+    0 1px 2px var(--shadow-indigo),
+    0 4px 12px var(--shadow-violet),
+    0 0 0 1px var(--shadow-ring);
 }
 
 .dashboard-stat {
-  box-shadow: 0 1px 2px rgb(99 102 241 / 0.05);
+  box-shadow: 0 1px 2px var(--shadow-indigo);
 }

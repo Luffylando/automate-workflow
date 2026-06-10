@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AdminPromptPanelGate } from "@/components/AdminPromptPanelGate";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,10 +29,16 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-full flex flex-col font-sans text-foreground">
-        {children}
-        <AdminPromptPanelGate />
+        <ThemeProvider>
+          {children}
+          <AdminPromptPanelGate />
+        </ThemeProvider>
       </body>
     </html>
   );

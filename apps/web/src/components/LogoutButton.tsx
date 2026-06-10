@@ -1,5 +1,7 @@
 "use client";
 
+import { BTN_SECONDARY_CLASS } from "@/lib/theme-classes";
+
 export function LogoutButton() {
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -10,7 +12,7 @@ export function LogoutButton() {
     <button
       type="button"
       onClick={() => void handleLogout()}
-      className="rounded-lg border border-indigo-200/80 bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 transition hover:border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
+      className={`${BTN_SECONDARY_CLASS} hover:border-brand-to/50 hover:bg-surface-muted hover:text-brand-to`}
     >
       Sign out
     </button>

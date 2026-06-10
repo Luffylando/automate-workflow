@@ -5,6 +5,21 @@ import {
   DASHBOARD_PANEL_HEIGHT_CLASS,
   DASHBOARD_SCROLL_AREA_CLASS,
 } from "@/lib/dashboard-layout";
+import {
+  EMPTY_STATE_COMPACT_CLASS,
+  EMPTY_STATE_DEFAULT_CLASS,
+  ERROR_BANNER_CLASS,
+  ERROR_BANNER_COMPACT_CLASS,
+  INPUT_COMPACT_CLASS,
+  INPUT_DEFAULT_CLASS,
+  LIST_ITEM_CLASS,
+  PANEL_COMPACT_CLASS,
+  PANEL_DEFAULT_CLASS,
+  PANEL_SECTION_HEADER_CLASS,
+  TEXT_HEADING_CLASS,
+  TEXT_MUTED_CLASS,
+  TEXT_SUBTLE_CLASS,
+} from "@/lib/theme-classes";
 import type { Todo } from "@/lib/types";
 
 interface TodosSectionProps {
@@ -242,24 +257,20 @@ export function TodosSection({
     <section
       className={
         isCompact
-          ? `dashboard-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-indigo-200/50 bg-white/95 ${
+          ? `${PANEL_COMPACT_CLASS} ${
               useFixedPanelHeight
                 ? DASHBOARD_PANEL_HEIGHT_CLASS
                 : "h-full"
             }`
-          : "card-glow overflow-hidden rounded-2xl border border-indigo-200/60 bg-white/90 p-8 backdrop-blur-sm"
+          : PANEL_DEFAULT_CLASS
       }
     >
       <div
-        className={
-          isCompact
-            ? "flex shrink-0 items-center justify-between gap-3 border-b border-indigo-100/80 px-4 py-3"
-            : "mb-6"
-        }
+        className={isCompact ? PANEL_SECTION_HEADER_CLASS : "mb-6"}
       >
         <div>
           {!isCompact ? (
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
               <span
                 className="h-2 w-2 rounded-full bg-indigo-500"
                 aria-hidden="true"
@@ -270,18 +281,18 @@ export function TodosSection({
           <h2
             className={
               isCompact
-                ? "text-sm font-semibold text-indigo-950"
+                ? `text-sm ${TEXT_HEADING_CLASS}`
                 : "text-2xl font-semibold brand-gradient-text"
             }
           >
             Todos
           </h2>
           {!isCompact ? (
-            <p className="mt-1 text-indigo-900/70">
+            <p className={`mt-1 ${TEXT_MUTED_CLASS}`}>
               Tasks stored in the app database.
             </p>
           ) : (
-            <p className="text-xs text-indigo-600/70">
+            <p className={`text-xs ${TEXT_SUBTLE_CLASS}`}>
               {pendingCount} open · {completedCount} done
             </p>
           )}
@@ -310,8 +321,8 @@ export function TodosSection({
             placeholder="Add a todo..."
             className={
               isCompact
-                ? "min-w-0 flex-1 rounded-lg border border-indigo-200/80 bg-indigo-50/30 px-3 py-1.5 text-xs text-indigo-950 outline-none placeholder:text-indigo-400 focus:border-violet-300 focus:ring-1 focus:ring-violet-300/50"
-                : "flex-1 rounded-xl border border-indigo-200 bg-indigo-50/40 px-4 py-2.5 text-sm text-indigo-950 outline-none placeholder:text-indigo-400 focus:border-violet-300 focus:ring-2 focus:ring-violet-300/50"
+                ? `min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`
+                : `flex-1 ${INPUT_DEFAULT_CLASS}`
             }
             aria-label="New todo title"
           />
@@ -331,9 +342,7 @@ export function TodosSection({
         {error ? (
           <p
             className={
-              isCompact
-                ? "mb-2 rounded-md bg-red-50 px-2 py-1 text-xs text-red-700"
-                : "mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+              isCompact ? ERROR_BANNER_COMPACT_CLASS : ERROR_BANNER_CLASS
             }
           >
             {error}
@@ -352,22 +361,20 @@ export function TodosSection({
         {todos.length === 0 ? (
           <div
             className={
-              isCompact
-                ? "rounded-lg border border-dashed border-indigo-200/80 bg-indigo-50/40 px-4 py-6 text-center"
-                : "rounded-xl border border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50/80 via-violet-50/60 to-fuchsia-50/80 px-6 py-10 text-center"
+              isCompact ? EMPTY_STATE_COMPACT_CLASS : EMPTY_STATE_DEFAULT_CLASS
             }
           >
             <p
               className={
                 isCompact
-                  ? "text-xs font-medium text-indigo-700"
-                  : "text-sm font-medium text-indigo-700"
+                  ? `text-xs font-medium ${TEXT_MUTED_CLASS}`
+                  : `text-sm font-medium ${TEXT_MUTED_CLASS}`
               }
             >
               No todos yet.
             </p>
             {!isCompact ? (
-              <p className="mt-1 text-xs text-indigo-500">
+              <p className={`mt-1 text-xs ${TEXT_SUBTLE_CLASS}`}>
                 Add your first task above to get started.
               </p>
             ) : null}
@@ -381,7 +388,7 @@ export function TodosSection({
             {todos.map((todo) => (
               <li
                 key={todo.id}
-                className={`group flex items-center gap-2 rounded-lg border border-indigo-100/80 bg-indigo-50/20 transition hover:bg-indigo-50/50 ${
+                className={`${LIST_ITEM_CLASS} ${
                   isCompact ? "px-2.5 py-1.5" : "justify-between gap-4 px-4 py-3"
                 } ${todo.completed ? "opacity-70" : ""}`}
               >
@@ -390,7 +397,7 @@ export function TodosSection({
                     type="checkbox"
                     checked={todo.completed}
                     onChange={() => void handleToggle(todo)}
-                    className="h-3.5 w-3.5 shrink-0 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-400"
+                    className="h-3.5 w-3.5 shrink-0 rounded border-border text-brand-from focus:ring-brand-via"
                     aria-label={`Mark "${todo.title}" as ${todo.completed ? "incomplete" : "complete"}`}
                   />
                   {editingId === todo.id ? (
@@ -398,7 +405,7 @@ export function TodosSection({
                       type="text"
                       value={editTitle}
                       onChange={(event) => setEditTitle(event.target.value)}
-                      className="min-w-0 flex-1 rounded-md border border-violet-200 bg-white px-2 py-1 text-xs text-indigo-950 outline-none focus:ring-1 focus:ring-violet-300/50"
+                      className={`min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`}
                       aria-label="Edit todo title"
                     />
                   ) : (
@@ -407,8 +414,8 @@ export function TodosSection({
                         isCompact ? "text-xs" : "text-sm"
                       } ${
                         todo.completed
-                          ? "text-emerald-600 line-through decoration-emerald-400"
-                          : "font-medium text-indigo-950"
+                          ? "text-emerald-600 line-through decoration-emerald-400 dark:text-emerald-400 dark:decoration-emerald-600"
+                          : `font-medium ${TEXT_HEADING_CLASS}`
                       }`}
                     >
                       {todo.title}
@@ -420,12 +427,12 @@ export function TodosSection({
                   <div className="flex flex-col items-end gap-0.5">
                     {todo.ratingCount ? (
                       <p
-                        className={`text-indigo-600/80 ${
+                        className={`${TEXT_SUBTLE_CLASS} ${
                           isCompact ? "text-[10px]" : "text-[11px]"
                         }`}
                       >
                         {formatAverageRating(todo.averageRating)} ★
-                        <span className="text-indigo-400">
+                        <span className="text-subtle">
                           {" "}
                           ({todo.ratingCount})
                         </span>
@@ -452,7 +459,7 @@ export function TodosSection({
                               type="button"
                               disabled={ratingTodoId === todo.id}
                               onClick={() => void handleRate(todo.id, value)}
-                              className={`rounded px-0.5 font-medium text-amber-500 transition hover:bg-amber-50 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 ${
+                              className={`rounded px-0.5 font-medium text-amber-500 transition hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/50 dark:hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-50 ${
                                 isCompact ? "text-[11px]" : "text-xs"
                               }`}
                               aria-label={`Rate ${todo.title} ${value} stars`}
@@ -471,14 +478,14 @@ export function TodosSection({
                       <button
                         type="button"
                         onClick={() => void handleUpdate(todo.id)}
-                        className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 hover:bg-emerald-100"
+                        className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-700/50 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
                       >
                         Save
                       </button>
                       <button
                         type="button"
                         onClick={cancelEditing}
-                        className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] text-slate-700 hover:bg-slate-50"
+                        className="rounded-md border border-border bg-surface px-2 py-0.5 text-[11px] text-muted hover:bg-surface-muted"
                       >
                         Cancel
                       </button>
@@ -488,7 +495,7 @@ export function TodosSection({
                       <button
                         type="button"
                         onClick={() => startEditing(todo)}
-                        className="rounded-md border border-transparent px-1.5 py-0.5 text-[11px] font-medium text-violet-600 opacity-0 transition group-hover:opacity-100 hover:border-violet-200 hover:bg-violet-50 sm:opacity-100"
+                        className="rounded-md border border-transparent px-1.5 py-0.5 text-[11px] font-medium text-brand-via opacity-0 transition group-hover:opacity-100 hover:border-brand-via/30 hover:bg-surface-muted sm:opacity-100"
                         aria-label={`Edit ${todo.title}`}
                       >
                         Edit
@@ -496,7 +503,7 @@ export function TodosSection({
                       <button
                         type="button"
                         onClick={() => void handleDelete(todo.id)}
-                        className="rounded-md border border-transparent px-1.5 py-0.5 text-[11px] font-medium text-rose-600 opacity-0 transition group-hover:opacity-100 hover:border-rose-200 hover:bg-rose-50 sm:opacity-100"
+                        className="rounded-md border border-transparent px-1.5 py-0.5 text-[11px] font-medium text-rose-600 opacity-0 transition group-hover:opacity-100 hover:border-rose-200 hover:bg-rose-50 dark:text-rose-400 dark:hover:border-rose-800/50 dark:hover:bg-rose-950/50 sm:opacity-100"
                         aria-label={`Delete ${todo.title}`}
                       >
                         Del

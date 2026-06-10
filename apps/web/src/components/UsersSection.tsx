@@ -5,6 +5,22 @@ import {
   DASHBOARD_PANEL_HEIGHT_CLASS,
   DASHBOARD_SCROLL_AREA_CLASS,
 } from "@/lib/dashboard-layout";
+import {
+  BTN_SECONDARY_CLASS,
+  EMPTY_STATE_COMPACT_CLASS,
+  EMPTY_STATE_DEFAULT_CLASS,
+  ERROR_BANNER_CLASS,
+  ERROR_BANNER_COMPACT_CLASS,
+  INPUT_COMPACT_CLASS,
+  INPUT_DEFAULT_CLASS,
+  PANEL_COMPACT_CLASS,
+  PANEL_DEFAULT_CLASS,
+  PANEL_SECTION_HEADER_CLASS,
+  ROLE_BADGE_CLASSES,
+  TEXT_HEADING_CLASS,
+  TEXT_MUTED_CLASS,
+  TEXT_SUBTLE_CLASS,
+} from "@/lib/theme-classes";
 import type { User, UserRole } from "@/lib/types";
 
 interface UsersSectionProps {
@@ -14,11 +30,6 @@ interface UsersSectionProps {
 }
 
 const ROLE_OPTIONS: UserRole[] = ["admin", "user"];
-
-const ROLE_BADGE_CLASSES: Record<UserRole, string> = {
-  admin: "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200",
-  user: "bg-cyan-100 text-cyan-800 border-cyan-200",
-};
 
 export function UsersSection({
   initialUsers,
@@ -122,32 +133,26 @@ export function UsersSection({
     }
   }
 
-  const inputClass = isCompact
-    ? "rounded-lg border border-indigo-200/80 bg-indigo-50/30 px-3 py-1.5 text-xs text-indigo-950 outline-none placeholder:text-indigo-400 focus:border-violet-300 focus:ring-1 focus:ring-violet-300/50"
-    : "rounded-xl border border-indigo-200 bg-indigo-50/40 px-4 py-2.5 text-sm text-indigo-950 outline-none placeholder:text-indigo-400 focus:border-violet-300 focus:ring-2 focus:ring-violet-300/50";
+  const inputClass = isCompact ? INPUT_COMPACT_CLASS : INPUT_DEFAULT_CLASS;
 
   return (
     <section
       className={
         isCompact
-          ? `dashboard-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-indigo-200/50 bg-white/95 ${
+          ? `${PANEL_COMPACT_CLASS} ${
               useFixedPanelHeight
                 ? DASHBOARD_PANEL_HEIGHT_CLASS
                 : "h-full"
             }`
-          : "card-glow overflow-hidden rounded-2xl border border-indigo-200/60 bg-white/90 p-8 backdrop-blur-sm"
+          : PANEL_DEFAULT_CLASS
       }
     >
       <div
-        className={
-          isCompact
-            ? "flex shrink-0 items-center justify-between gap-3 border-b border-indigo-100/80 px-4 py-3"
-            : "mb-6"
-        }
+        className={isCompact ? PANEL_SECTION_HEADER_CLASS : "mb-6"}
       >
         <div>
           {!isCompact ? (
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-fuchsia-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-fuchsia-700">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-fuchsia-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-fuchsia-700 dark:bg-fuchsia-950/50 dark:text-fuchsia-300">
               <span
                 className="h-2 w-2 rounded-full bg-fuchsia-500"
                 aria-hidden="true"
@@ -158,25 +163,27 @@ export function UsersSection({
           <h2
             className={
               isCompact
-                ? "text-sm font-semibold text-indigo-950"
+                ? `text-sm ${TEXT_HEADING_CLASS}`
                 : "text-2xl font-semibold brand-gradient-text"
             }
           >
             Users
           </h2>
           {!isCompact ? (
-            <p className="mt-1 text-indigo-900/70">
+            <p className={`mt-1 ${TEXT_MUTED_CLASS}`}>
               Create users with login credentials and assign roles. Admin-only.
             </p>
           ) : (
-            <p className="text-xs text-indigo-600/70">{users.length} members</p>
+            <p className={`text-xs ${TEXT_SUBTLE_CLASS}`}>
+              {users.length} members
+            </p>
           )}
         </div>
         {isCompact ? (
           <button
             type="button"
             onClick={() => setShowForm((current) => !current)}
-            className="shrink-0 rounded-lg border border-indigo-200/80 bg-white px-2.5 py-1 text-[11px] font-medium text-indigo-700 hover:bg-indigo-50"
+            className={`shrink-0 px-2.5 py-1 text-[11px] ${BTN_SECONDARY_CLASS}`}
           >
             {showForm ? "Close" : "+ Add"}
           </button>
@@ -235,12 +242,12 @@ export function UsersSection({
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <label className="flex items-center gap-1.5 text-xs font-medium text-indigo-900">
+              <label className={`flex items-center gap-1.5 text-xs font-medium ${TEXT_HEADING_CLASS}`}>
                 Role
                 <select
                   value={role}
                   onChange={(event) => setRole(event.target.value as UserRole)}
-                  className="rounded-lg border border-indigo-200/80 bg-indigo-50/30 px-2 py-1 text-xs text-indigo-950 outline-none focus:border-violet-300 focus:ring-1 focus:ring-violet-300/50"
+                  className={`px-2 py-1 ${INPUT_COMPACT_CLASS}`}
                   aria-label="New user role"
                 >
                   {ROLE_OPTIONS.map((option) => (
@@ -273,9 +280,7 @@ export function UsersSection({
         {error ? (
           <p
             className={
-              isCompact
-                ? "mb-2 rounded-md bg-red-50 px-2 py-1 text-xs text-red-700"
-                : "mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+              isCompact ? ERROR_BANNER_COMPACT_CLASS : ERROR_BANNER_CLASS
             }
           >
             {error}
@@ -294,22 +299,20 @@ export function UsersSection({
         {users.length === 0 ? (
           <div
             className={
-              isCompact
-                ? "rounded-lg border border-dashed border-indigo-200/80 bg-indigo-50/40 px-4 py-6 text-center"
-                : "rounded-xl border border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50/80 via-violet-50/60 to-fuchsia-50/80 px-6 py-10 text-center"
+              isCompact ? EMPTY_STATE_COMPACT_CLASS : EMPTY_STATE_DEFAULT_CLASS
             }
           >
             <p
               className={
                 isCompact
-                  ? "text-xs font-medium text-indigo-700"
-                  : "text-sm font-medium text-indigo-700"
+                  ? `text-xs font-medium ${TEXT_MUTED_CLASS}`
+                  : `text-sm font-medium ${TEXT_MUTED_CLASS}`
               }
             >
               No users yet.
             </p>
             {!isCompact ? (
-              <p className="mt-1 text-xs text-indigo-500">
+              <p className={`mt-1 text-xs ${TEXT_SUBTLE_CLASS}`}>
                 Create your first user above.
               </p>
             ) : null}
@@ -323,20 +326,20 @@ export function UsersSection({
             {users.map((user) => (
               <li
                 key={user.id}
-                className={`flex items-center justify-between gap-2 rounded-lg border border-indigo-100/80 bg-fuchsia-50/20 ${
+                className={`flex items-center justify-between gap-2 rounded-lg border border-border-muted bg-fuchsia-50/20 dark:bg-fuchsia-950/20 ${
                   isCompact ? "px-2.5 py-1.5" : "flex-wrap gap-4 px-4 py-3"
                 }`}
               >
                 <div className="min-w-0">
                   <p
-                    className={`truncate font-medium text-indigo-950 ${
+                    className={`truncate font-medium text-foreground ${
                       isCompact ? "text-xs" : ""
                     }`}
                   >
                     {user.name}
                   </p>
                   <p
-                    className={`truncate text-indigo-600 ${
+                    className={`truncate text-muted ${
                       isCompact ? "text-[11px]" : "text-sm"
                     }`}
                   >
@@ -358,7 +361,7 @@ export function UsersSection({
                         event.target.value as UserRole,
                       )
                     }
-                    className="rounded-md border border-violet-200 bg-white px-1.5 py-0.5 text-[11px] text-indigo-950 outline-none focus:ring-1 focus:ring-violet-300/50 disabled:opacity-60"
+                    className={`rounded-md px-1.5 py-0.5 text-[11px] ${INPUT_COMPACT_CLASS} disabled:opacity-60`}
                     aria-label={`Role for ${user.name}`}
                   >
                     {ROLE_OPTIONS.map((option) => (
