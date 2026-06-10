@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { AdminPromptPanel } from "@/components/AdminPromptPanel";
+import { redirect } from "next/navigation";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
 import { TodosSection } from "@/components/TodosSection";
-import { getSession, listTodos } from "@/lib/server-api";
+import { UsersSection } from "@/components/UsersSection";
+import { getSession, listTodos, listUsers } from "@/lib/server-api";
 
-export default async function Home() {
-  const [session, todos] = await Promise.all([getSession(), listTodos()]);
+export default async function DashboardPage() {
+  const session = await getSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const [todos, users] = await Promise.all([listTodos(), listUsers()]);
 
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
@@ -15,31 +22,26 @@ export default async function Home() {
             <p className="text-sm font-semibold tracking-wide brand-gradient-text">
               Automate Workflow
             </p>
-            <h1 className="text-xl font-semibold text-indigo-950">Home</h1>
+            <h1 className="text-xl font-semibold text-indigo-950">Dashboard</h1>
           </div>
-          {session ? (
+          <div className="flex items-center gap-3">
+            <span className="hidden text-sm text-indigo-700 sm:inline">
+              {session.email}
+            </span>
             <Link
-              href="/dashboard"
+              href="/"
               className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:border-violet-200 hover:bg-violet-50"
             >
-              Dashboard
+              Home
             </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
-            >
-              Admin sign in
-            </Link>
-          )}
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-16">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-16">
         <TodosSection initialTodos={todos} />
+        <UsersSection initialUsers={users} />
       </main>
-
-      {session ? <AdminPromptPanel /> : null}
 
       <PoweredByPromptsFooter />
     </div>

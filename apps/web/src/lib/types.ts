@@ -20,6 +20,16 @@ export interface Todo {
   updatedAt: string;
 }
 
+export type UserRole = "admin" | "user";
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+}
+
 export interface AdminSession {
   role: "admin";
   sub: string;
