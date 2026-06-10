@@ -1,9 +1,18 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import type { Job } from "@/lib/types";
+import { JobStatusBadge } from "@/components/JobStatusBadge";
+import type { Job, JobStatus } from "@/lib/types";
 
 const POLL_INTERVAL_MS = 2000;
+
+const JOB_PANEL_STYLES: Record<JobStatus, string> = {
+  queued:
+    "border-amber-200 bg-amber-50/50 ring-1 ring-amber-100",
+  running: "border-blue-300 bg-blue-50/60 ring-2 ring-blue-200",
+  done: "border-green-300 bg-green-50/60 ring-2 ring-green-200",
+  failed: "border-red-300 bg-red-50/60 ring-2 ring-red-200",
+};
 
 export function AdminPromptPanel() {
   const [isOpen, setIsOpen] = useState(false);
@@ -120,17 +129,16 @@ export function AdminPromptPanel() {
             </form>
 
             {activeJob ? (
-              <div className="mt-4 rounded-xl border border-indigo-100 bg-white/90 p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                  Latest job
-                </p>
+              <div
+                className={`mt-4 rounded-xl border p-4 shadow-sm ${JOB_PANEL_STYLES[activeJob.status]}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                    Latest job
+                  </p>
+                  <JobStatusBadge status={activeJob.status} />
+                </div>
                 <dl className="mt-3 space-y-2 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="text-zinc-500">Status</dt>
-                    <dd className="font-medium capitalize text-zinc-900">
-                      {activeJob.status}
-                    </dd>
-                  </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-zinc-500">Job ID</dt>
                     <dd className="truncate font-mono text-xs text-zinc-700">

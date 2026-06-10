@@ -28,7 +28,8 @@ automate-workflow/
 6. Put UI components in `apps/web/src/components/`.
 7. Never commit secrets (`.env`, API keys, passwords).
 8. Add or update tests when behavior changes meaningfully.
-9. Run `pnpm build` from the repo root before finishing.
+9. Run `pnpm verify` from the repo root before finishing (build, test, and dev smoke).
+10. CI runs the same checks on push/PR via `.github/workflows/ci.yml`.
 
 ## Backend features
 

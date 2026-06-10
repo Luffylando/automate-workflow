@@ -10,6 +10,7 @@
     "db:setup": "bash scripts/db-setup.sh",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
+    "verify": "bash scripts/verify.sh",
     "build": "pnpm --filter api build && pnpm --filter web build",
     "start:api": "pnpm --filter api start",
     "start:web": "pnpm --filter web start",
