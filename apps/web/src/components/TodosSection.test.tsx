@@ -1,5 +1,9 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  DASHBOARD_PANEL_HEIGHT_CLASS,
+  DASHBOARD_SCROLL_AREA_CLASS,
+} from "@/lib/dashboard-layout";
 import { TodosSection } from "./TodosSection";
 
 afterEach(() => {
@@ -31,6 +35,33 @@ describe("TodosSection", () => {
     render(<TodosSection initialTodos={[]} />);
 
     expect(screen.getByText("No todos yet.")).toBeInTheDocument();
+  });
+
+  it("uses a fixed-height scrollable panel on the dashboard", () => {
+    const { container } = render(
+      <TodosSection
+        variant="compact"
+        fixedHeight
+        initialTodos={[
+          {
+            id: "1",
+            title: "Scrollable task",
+            completed: false,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    const panel = container.querySelector("section");
+    const scrollArea = panel?.querySelector("div.overflow-y-auto");
+
+    expect(panel?.className).toContain(DASHBOARD_PANEL_HEIGHT_CLASS);
+    expect(scrollArea).not.toBeNull();
+    for (const className of DASHBOARD_SCROLL_AREA_CLASS.split(" ")) {
+      expect(scrollArea?.className).toContain(className);
+    }
   });
 
   it("renders compact variant with open and done counts", () => {

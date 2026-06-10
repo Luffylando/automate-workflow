@@ -57,11 +57,16 @@ export default async function DashboardPage() {
               initialTodos={todos}
               variant="compact"
               canRate
+              fixedHeight
             />
           </div>
           {adminSession ? (
             <div className="lg:col-span-2">
-              <UsersSection initialUsers={users} variant="compact" />
+              <UsersSection
+                initialUsers={users}
+                variant="compact"
+                fixedHeight
+              />
             </div>
           ) : null}
         </div>

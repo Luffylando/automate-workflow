@@ -1,12 +1,17 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import {
+  DASHBOARD_PANEL_HEIGHT_CLASS,
+  DASHBOARD_SCROLL_AREA_CLASS,
+} from "@/lib/dashboard-layout";
 import type { Todo } from "@/lib/types";
 
 interface TodosSectionProps {
   initialTodos: Todo[];
   variant?: "default" | "compact";
   canRate?: boolean;
+  fixedHeight?: boolean;
 }
 
 const RATING_VALUES = [1, 2, 3, 4, 5] as const;
@@ -23,6 +28,7 @@ export function TodosSection({
   initialTodos,
   variant = "default",
   canRate = false,
+  fixedHeight = false,
 }: TodosSectionProps) {
   const [todos, setTodos] = useState(initialTodos);
   const [newTitle, setNewTitle] = useState("");
@@ -33,6 +39,7 @@ export function TodosSection({
   const [ratingTodoId, setRatingTodoId] = useState<string | null>(null);
 
   const isCompact = variant === "compact";
+  const useFixedPanelHeight = isCompact && fixedHeight;
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -235,14 +242,18 @@ export function TodosSection({
     <section
       className={
         isCompact
-          ? "dashboard-panel flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-indigo-200/50 bg-white/95"
+          ? `dashboard-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-indigo-200/50 bg-white/95 ${
+              useFixedPanelHeight
+                ? DASHBOARD_PANEL_HEIGHT_CLASS
+                : "h-full"
+            }`
           : "card-glow overflow-hidden rounded-2xl border border-indigo-200/60 bg-white/90 p-8 backdrop-blur-sm"
       }
     >
       <div
         className={
           isCompact
-            ? "flex items-center justify-between gap-3 border-b border-indigo-100/80 px-4 py-3"
+            ? "flex shrink-0 items-center justify-between gap-3 border-b border-indigo-100/80 px-4 py-3"
             : "mb-6"
         }
       >
@@ -277,12 +288,18 @@ export function TodosSection({
         </div>
       </div>
 
-      <div className={isCompact ? "flex min-h-0 flex-1 flex-col px-4 py-3" : ""}>
+      <div
+        className={
+          isCompact
+            ? "flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-3"
+            : ""
+        }
+      >
         <form
           onSubmit={handleCreate}
           className={
             isCompact
-              ? "mb-3 flex gap-2"
+              ? `flex shrink-0 gap-2 ${useFixedPanelHeight ? "mb-2" : "mb-3"}`
               : "mb-6 flex gap-3"
           }
         >
@@ -323,6 +340,15 @@ export function TodosSection({
           </p>
         ) : null}
 
+        <div
+          className={
+            useFixedPanelHeight
+              ? DASHBOARD_SCROLL_AREA_CLASS
+              : isCompact
+                ? "max-h-72 overflow-y-auto pr-0.5"
+                : ""
+          }
+        >
         {todos.length === 0 ? (
           <div
             className={
@@ -349,9 +375,7 @@ export function TodosSection({
         ) : (
           <ul
             className={
-              isCompact
-                ? "max-h-72 space-y-1 overflow-y-auto pr-0.5"
-                : "space-y-2"
+              isCompact ? "space-y-1" : "space-y-2"
             }
           >
             {todos.map((todo) => (
@@ -485,6 +509,7 @@ export function TodosSection({
             ))}
           </ul>
         )}
+        </div>
       </div>
     </section>
   );
