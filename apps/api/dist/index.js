@@ -15,10 +15,12 @@ const auth_1 = require("./routes/auth");
 const jobs_1 = require("./routes/jobs");
 const todos_1 = require("./routes/todos");
 const users_1 = require("./routes/users");
+const seed_1 = require("./db/seed");
 const admins_1 = require("./services/admins");
 async function start() {
     await (0, data_source_1.getDataSource)();
     await (0, admins_1.ensureDefaultAdmin)();
+    await (0, seed_1.seedDemoData)();
     const fastify = (0, fastify_1.default)({ logger: true });
     await fastify.register(cookie_1.default);
     (0, admin_auth_1.registerAdminAuth)(fastify);
