@@ -10,11 +10,13 @@ import { authRoutes } from "./routes/auth";
 import { jobsRoutes } from "./routes/jobs";
 import { todosRoutes } from "./routes/todos";
 import { usersRoutes } from "./routes/users";
+import { seedDemoData } from "./db/seed";
 import { ensureDefaultAdmin } from "./services/admins";
 
 async function start(): Promise<void> {
   await getDataSource();
   await ensureDefaultAdmin();
+  await seedDemoData();
 
   const fastify = Fastify({ logger: true });
 
