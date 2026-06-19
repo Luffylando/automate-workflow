@@ -10,9 +10,15 @@ import {
   createTodo,
   deleteTodo,
   getTodoById,
+  getTodoStats,
+  isTodoPriority,
+  isTodoStatus,
   listTodos,
+  normalizeTags,
+  parseDueDate,
   updateTodo,
 } from "../services/todos";
+import type { TodoPriority, TodoStatus } from "../types";
 
 export async function todosRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get("/api/todos", async (request, reply) => {
@@ -27,11 +33,23 @@ export async function todosRoutes(fastify: FastifyInstance): Promise<void> {
     }
   });
 
+  fastify.get("/api/todos/stats", async (_request, reply) => {
+    try {
+      const stats = await getTodoStats();
+      return { stats };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to fetch todo stats";
+      return reply.status(500).send({ error: message });
+    }
+  });
+
   fastify.get<{ Params: { id: string } }>(
     "/api/todos/:id",
     async (request, reply) => {
       try {
-        const todo = await getTodoById(request.params.id);
+        const userId = request.adminSession?.sub;
+        const todo = await getTodoById(request.params.id, userId);
         if (!todo) {
           return reply.status(404).send({ error: "Todo not found" });
         }
@@ -44,32 +62,72 @@ export async function todosRoutes(fastify: FastifyInstance): Promise<void> {
     },
   );
 
-  fastify.post<{ Body: { title?: string } }>(
-    "/api/todos",
-    async (request, reply) => {
-      try {
-        const title = request.body.title?.trim();
-        if (!title) {
-          return reply.status(400).send({ error: "Title is required" });
-        }
-        if (title.length > 500) {
-          return reply
-            .status(400)
-            .send({ error: "Title must be 500 characters or fewer" });
-        }
-        const todo = await createTodo(title);
-        return reply.status(201).send(todo);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Failed to create todo";
-        return reply.status(500).send({ error: message });
+  fastify.post<{
+    Body: {
+      title?: string;
+      priority?: string;
+      status?: string;
+      dueDate?: string | null;
+      tags?: unknown;
+    };
+  }>("/api/todos", async (request, reply) => {
+    try {
+      const title = request.body.title?.trim();
+      if (!title) {
+        return reply.status(400).send({ error: "Title is required" });
       }
-    },
-  );
+      if (title.length > 500) {
+        return reply
+          .status(400)
+          .send({ error: "Title must be 500 characters or fewer" });
+      }
+
+      const priority = request.body.priority?.trim();
+      if (priority && !isTodoPriority(priority)) {
+        return reply.status(400).send({ error: "Invalid priority" });
+      }
+
+      const status = request.body.status?.trim();
+      if (status && !isTodoStatus(status)) {
+        return reply.status(400).send({ error: "Invalid status" });
+      }
+
+      const dueDate = parseDueDate(request.body.dueDate);
+      if (request.body.dueDate !== undefined && dueDate === undefined) {
+        return reply.status(400).send({ error: "Invalid due date" });
+      }
+
+      const tags = normalizeTags(request.body.tags ?? []);
+      if (request.body.tags !== undefined && tags === null) {
+        return reply.status(400).send({ error: "Invalid tags" });
+      }
+
+      const todo = await createTodo({
+        title,
+        priority: priority as TodoPriority | undefined,
+        status: status as TodoStatus | undefined,
+        dueDate:
+          dueDate === undefined ? undefined : dueDate?.toISOString() ?? null,
+        tags: tags ?? [],
+      });
+      return reply.status(201).send(todo);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to create todo";
+      return reply.status(500).send({ error: message });
+    }
+  });
 
   fastify.patch<{
     Params: { id: string };
-    Body: { title?: string; completed?: boolean };
+    Body: {
+      title?: string;
+      completed?: boolean;
+      priority?: string;
+      status?: string;
+      dueDate?: string | null;
+      tags?: unknown;
+    };
   }>("/api/todos/:id", async (request, reply) => {
     try {
       const { title, completed } = request.body;
@@ -84,13 +142,47 @@ export async function todosRoutes(fastify: FastifyInstance): Promise<void> {
           .send({ error: "Title must be 500 characters or fewer" });
       }
 
-      if (title === undefined && completed === undefined) {
+      const priority = request.body.priority?.trim();
+      if (priority && !isTodoPriority(priority)) {
+        return reply.status(400).send({ error: "Invalid priority" });
+      }
+
+      const status = request.body.status?.trim();
+      if (status && !isTodoStatus(status)) {
+        return reply.status(400).send({ error: "Invalid status" });
+      }
+
+      const dueDate = parseDueDate(request.body.dueDate);
+      if (request.body.dueDate !== undefined && dueDate === undefined) {
+        return reply.status(400).send({ error: "Invalid due date" });
+      }
+
+      const tags = normalizeTags(request.body.tags);
+      if (request.body.tags !== undefined && tags === null) {
+        return reply.status(400).send({ error: "Invalid tags" });
+      }
+
+      if (
+        title === undefined &&
+        completed === undefined &&
+        priority === undefined &&
+        status === undefined &&
+        request.body.dueDate === undefined &&
+        request.body.tags === undefined
+      ) {
         return reply.status(400).send({ error: "No updates provided" });
       }
 
       const todo = await updateTodo(request.params.id, {
         title: title?.trim(),
         completed,
+        priority: priority as TodoPriority | undefined,
+        status: status as TodoStatus | undefined,
+        dueDate:
+          request.body.dueDate === undefined
+            ? undefined
+            : dueDate?.toISOString() ?? null,
+        tags: tags ?? undefined,
       });
 
       if (!todo) {

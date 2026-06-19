@@ -11,6 +11,10 @@ describe("mappers", () => {
       id: "todo-1",
       title: "Write tests",
       completed: false,
+      priority: "high",
+      status: "in_progress",
+      dueDate: new Date("2026-06-20T12:00:00.000Z"),
+      tags: ["testing", "api"],
       createdAt: new Date("2026-06-10T10:00:00.000Z"),
       updatedAt: new Date("2026-06-10T10:05:00.000Z"),
     } as Todo;
@@ -19,6 +23,10 @@ describe("mappers", () => {
       id: "todo-1",
       title: "Write tests",
       completed: false,
+      priority: "high",
+      status: "in_progress",
+      dueDate: "2026-06-20T12:00:00.000Z",
+      tags: ["testing", "api"],
       createdAt: "2026-06-10T10:00:00.000Z",
       updatedAt: "2026-06-10T10:05:00.000Z",
     });

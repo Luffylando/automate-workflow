@@ -16,9 +16,20 @@ async function todosRoutes(fastify) {
             return reply.status(500).send({ error: message });
         }
     });
+    fastify.get("/api/todos/stats", async (_request, reply) => {
+        try {
+            const stats = await (0, todos_1.getTodoStats)();
+            return { stats };
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to fetch todo stats";
+            return reply.status(500).send({ error: message });
+        }
+    });
     fastify.get("/api/todos/:id", async (request, reply) => {
         try {
-            const todo = await (0, todos_1.getTodoById)(request.params.id);
+            const userId = request.adminSession?.sub;
+            const todo = await (0, todos_1.getTodoById)(request.params.id, userId);
             if (!todo) {
                 return reply.status(404).send({ error: "Todo not found" });
             }
@@ -40,7 +51,29 @@ async function todosRoutes(fastify) {
                     .status(400)
                     .send({ error: "Title must be 500 characters or fewer" });
             }
-            const todo = await (0, todos_1.createTodo)(title);
+            const priority = request.body.priority?.trim();
+            if (priority && !(0, todos_1.isTodoPriority)(priority)) {
+                return reply.status(400).send({ error: "Invalid priority" });
+            }
+            const status = request.body.status?.trim();
+            if (status && !(0, todos_1.isTodoStatus)(status)) {
+                return reply.status(400).send({ error: "Invalid status" });
+            }
+            const dueDate = (0, todos_1.parseDueDate)(request.body.dueDate);
+            if (request.body.dueDate !== undefined && dueDate === undefined) {
+                return reply.status(400).send({ error: "Invalid due date" });
+            }
+            const tags = (0, todos_1.normalizeTags)(request.body.tags ?? []);
+            if (request.body.tags !== undefined && tags === null) {
+                return reply.status(400).send({ error: "Invalid tags" });
+            }
+            const todo = await (0, todos_1.createTodo)({
+                title,
+                priority: priority,
+                status: status,
+                dueDate: dueDate === undefined ? undefined : dueDate?.toISOString() ?? null,
+                tags: tags ?? [],
+            });
             return reply.status(201).send(todo);
         }
         catch (error) {
@@ -59,12 +92,39 @@ async function todosRoutes(fastify) {
                     .status(400)
                     .send({ error: "Title must be 500 characters or fewer" });
             }
-            if (title === undefined && completed === undefined) {
+            const priority = request.body.priority?.trim();
+            if (priority && !(0, todos_1.isTodoPriority)(priority)) {
+                return reply.status(400).send({ error: "Invalid priority" });
+            }
+            const status = request.body.status?.trim();
+            if (status && !(0, todos_1.isTodoStatus)(status)) {
+                return reply.status(400).send({ error: "Invalid status" });
+            }
+            const dueDate = (0, todos_1.parseDueDate)(request.body.dueDate);
+            if (request.body.dueDate !== undefined && dueDate === undefined) {
+                return reply.status(400).send({ error: "Invalid due date" });
+            }
+            const tags = (0, todos_1.normalizeTags)(request.body.tags);
+            if (request.body.tags !== undefined && tags === null) {
+                return reply.status(400).send({ error: "Invalid tags" });
+            }
+            if (title === undefined &&
+                completed === undefined &&
+                priority === undefined &&
+                status === undefined &&
+                request.body.dueDate === undefined &&
+                request.body.tags === undefined) {
                 return reply.status(400).send({ error: "No updates provided" });
             }
             const todo = await (0, todos_1.updateTodo)(request.params.id, {
                 title: title?.trim(),
                 completed,
+                priority: priority,
+                status: status,
+                dueDate: request.body.dueDate === undefined
+                    ? undefined
+                    : dueDate?.toISOString() ?? null,
+                tags: tags ?? undefined,
             });
             if (!todo) {
                 return reply.status(404).send({ error: "Todo not found" });

@@ -15,6 +15,10 @@ let Todo = class Todo {
     id;
     title;
     completed;
+    priority;
+    status;
+    dueDate;
+    tags;
     createdAt;
     updatedAt;
 };
@@ -31,6 +35,22 @@ __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: false }),
     __metadata("design:type", Boolean)
 ], Todo.prototype, "completed", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 20, default: "medium" }),
+    __metadata("design:type", String)
+], Todo.prototype, "priority", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 20, default: "todo" }),
+    __metadata("design:type", String)
+], Todo.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "timestamptz", nullable: true }),
+    __metadata("design:type", Object)
+], Todo.prototype, "dueDate", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "jsonb", default: () => "'[]'" }),
+    __metadata("design:type", Array)
+], Todo.prototype, "tags", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ type: "timestamptz" }),
     __metadata("design:type", Date)

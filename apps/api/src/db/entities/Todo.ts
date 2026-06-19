@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import type { TodoPriority, TodoStatus } from "../../types";
 
 @Entity("todos")
 export class Todo {
@@ -16,6 +17,18 @@ export class Todo {
 
   @Column({ type: "boolean", default: false })
   completed!: boolean;
+
+  @Column({ type: "varchar", length: 20, default: "medium" })
+  priority!: TodoPriority;
+
+  @Column({ type: "varchar", length: 20, default: "todo" })
+  status!: TodoStatus;
+
+  @Column({ type: "timestamptz", nullable: true })
+  dueDate!: Date | null;
+
+  @Column({ type: "jsonb", default: () => "'[]'" })
+  tags!: string[];
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt!: Date;

@@ -1,15 +1,13 @@
-import type { JobStats } from "@/lib/types";
+import type { JobStats, TodoStats } from "@/lib/types";
 
 export interface DashboardStatsBarProps {
-  totalTodos: number;
-  pendingTodos: number;
-  completedTodos: number;
+  todoStats: TodoStats;
   usersCount?: number;
   donePercent?: number;
   jobStats?: JobStats | null;
 }
 
-function InlineStat({ label, value }: { label: string; value: number }) {
+function InlineStat({ label, value }: { label: string; value: number | string }) {
   return (
     <span className="inline-flex items-baseline gap-1">
       <span className="text-[10px] font-medium uppercase tracking-wide text-muted">
@@ -37,26 +35,38 @@ function GroupLabel({ children }: { children: string }) {
 }
 
 export function DashboardStatsBar({
-  totalTodos,
-  pendingTodos,
-  completedTodos,
+  todoStats,
   usersCount,
   donePercent,
   jobStats,
 }: DashboardStatsBarProps) {
   const activeJobs = jobStats ? jobStats.queued + jobStats.running : 0;
   const showGroups = jobStats != null;
+  const donePercentValue =
+    donePercent ??
+    (todoStats.total
+      ? Math.round((todoStats.done / todoStats.total) * 100)
+      : 0);
 
   return (
     <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border bg-surface/60 px-2.5 py-1.5">
       {showGroups ? <GroupLabel>Tasks</GroupLabel> : null}
-      <InlineStat label="Total" value={totalTodos} />
-      <InlineStat label="Open" value={pendingTodos} />
-      <InlineStat label="Done" value={completedTodos} />
+      <InlineStat label="Total" value={todoStats.total} />
+      <InlineStat label="Open" value={todoStats.open} />
+      <InlineStat label="Done" value={todoStats.done} />
+      <InlineStat label="In Prog" value={todoStats.inProgress} />
+      <InlineStat label="Overdue" value={todoStats.overdue} />
+      <InlineStat label="High" value={todoStats.highPriority} />
       {usersCount !== undefined ? (
         <InlineStat label="Users" value={usersCount} />
-      ) : donePercent !== undefined ? (
-        <InlineStat label="Done %" value={donePercent} />
+      ) : (
+        <InlineStat label="Done %" value={donePercentValue} />
+      )}
+      {todoStats.rated > 0 ? (
+        <InlineStat
+          label="Avg ★"
+          value={todoStats.averageRating?.toFixed(1) ?? "0.0"}
+        />
       ) : null}
 
       {jobStats ? (

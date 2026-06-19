@@ -9,6 +9,7 @@ import {
   getAdminSession,
   getJobStats,
   getSession,
+  getTodoStats,
   listJobs,
   listTodos,
   listUsers,
@@ -22,29 +23,24 @@ export default async function DashboardPage() {
   }
 
   const adminSession = await getAdminSession();
-  const todos = await listTodos();
+  const [todos, todoStats] = await Promise.all([listTodos(), getTodoStats()]);
   const users = adminSession ? await listUsers() : [];
   const jobs = adminSession ? await listJobs() : [];
   const jobStats = adminSession ? await getJobStats() : null;
 
-  const totalTodos = todos.length;
-  const completedTodos = todos.filter((todo) => todo.completed).length;
-  const pendingTodos = totalTodos - completedTodos;
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
       <DashboardHeader email={session.email} />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-5">
         <DashboardStatsBar
-          totalTodos={totalTodos}
-          pendingTodos={pendingTodos}
-          completedTodos={completedTodos}
+          todoStats={todoStats}
           usersCount={adminSession ? users.length : undefined}
           donePercent={
             adminSession
               ? undefined
-              : totalTodos
-                ? Math.round((completedTodos / totalTodos) * 100)
+              : todoStats.total
+                ? Math.round((todoStats.done / todoStats.total) * 100)
                 : 0
           }
           jobStats={adminSession ? jobStats : null}

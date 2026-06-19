@@ -4,6 +4,7 @@ import {
   DASHBOARD_PANEL_HEIGHT_CLASS,
   DASHBOARD_SCROLL_AREA_CLASS,
 } from "@/lib/dashboard-layout";
+import type { Todo } from "@/lib/types";
 import { TodosSection } from "./TodosSection";
 
 afterEach(() => {
@@ -11,24 +12,41 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+function sampleTodo(overrides: Partial<Todo> = {}): Todo {
+  return {
+    id: "1",
+    title: "Write tests",
+    completed: false,
+    priority: "medium",
+    status: "todo",
+    dueDate: null,
+    tags: [],
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
 describe("TodosSection", () => {
-  it("renders todos", () => {
+  it("renders todos with metadata badges", () => {
     render(
       <TodosSection
         initialTodos={[
-          {
-            id: "1",
-            title: "Write tests",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-          },
+          sampleTodo({
+            priority: "high",
+            status: "in_progress",
+            dueDate: "2026-12-31T12:00:00.000Z",
+            tags: ["testing"],
+          }),
         ]}
       />,
     );
 
     expect(screen.getByRole("heading", { name: "Todos" })).toBeInTheDocument();
     expect(screen.getByText("Write tests")).toBeInTheDocument();
+    expect(screen.getByText("High")).toBeInTheDocument();
+    expect(screen.getByText("In progress")).toBeInTheDocument();
+    expect(screen.getByText("#testing")).toBeInTheDocument();
   });
 
   it("shows a message when there are no todos", () => {
@@ -42,15 +60,7 @@ describe("TodosSection", () => {
       <TodosSection
         variant="compact"
         fixedHeight
-        initialTodos={[
-          {
-            id: "1",
-            title: "Scrollable task",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-          },
-        ]}
+        initialTodos={[sampleTodo({ title: "Scrollable task" })]}
       />,
     );
 
@@ -69,20 +79,13 @@ describe("TodosSection", () => {
       <TodosSection
         variant="compact"
         initialTodos={[
-          {
-            id: "1",
-            title: "Open task",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-          },
-          {
+          sampleTodo({ id: "1", title: "Open task", status: "todo" }),
+          sampleTodo({
             id: "2",
             title: "Done task",
             completed: true,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-          },
+            status: "done",
+          }),
         ]}
       />,
     );
@@ -101,16 +104,11 @@ describe("TodosSection", () => {
       <TodosSection
         canRate
         initialTodos={[
-          {
-            id: "1",
-            title: "Write tests",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
+          sampleTodo({
             averageRating: null,
             ratingCount: 0,
             myRating: null,
-          },
+          }),
         ]}
       />,
     );
@@ -140,16 +138,7 @@ describe("TodosSection", () => {
     render(
       <TodosSection
         canRate
-        initialTodos={[
-          {
-            id: "1",
-            title: "Write tests",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-            myRating: null,
-          },
-        ]}
+        initialTodos={[sampleTodo({ myRating: null })]}
       />,
     );
 
@@ -167,13 +156,11 @@ describe("TodosSection", () => {
   it("creates a todo through the API", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({
-        id: "2",
-        title: "Ship feature",
-        completed: false,
-        createdAt: "2026-01-02T00:00:00.000Z",
-        updatedAt: "2026-01-02T00:00:00.000Z",
-      }),
+      json: async () =>
+        sampleTodo({
+          id: "2",
+          title: "Ship feature",
+        }),
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -188,7 +175,7 @@ describe("TodosSection", () => {
       expect(fetchMock).toHaveBeenCalledWith("/api/todos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "Ship feature" }),
+        body: JSON.stringify({ title: "Ship feature", priority: "medium" }),
       });
       expect(screen.getByText("Ship feature")).toBeInTheDocument();
     });

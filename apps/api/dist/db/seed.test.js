@@ -87,12 +87,11 @@ vitest_1.vi.mock("../services/todo-ratings", () => ({
         mockTodoCount.mockResolvedValue(0);
         mockRatingCount.mockResolvedValue(0);
         mockCreateUser.mockResolvedValue({ id: "user-id" });
-        mockCreateTodo.mockImplementation(async (title) => ({
-            id: `todo-${title}`,
-            title,
+        mockCreateTodo.mockImplementation(async (input) => ({
+            id: `todo-${input.title}`,
+            title: input.title,
             completed: false,
         }));
-        mockUpdateTodo.mockResolvedValue(null);
         mockUserFind.mockResolvedValue([
             { id: "user-1", email: "alex@example.com" },
             { id: "user-2", email: "sam@example.com" },
@@ -127,7 +126,6 @@ vitest_1.vi.mock("../services/todo-ratings", () => ({
             role: "admin",
         });
         (0, vitest_1.expect)(mockCreateTodo).toHaveBeenCalledTimes(10);
-        (0, vitest_1.expect)(mockUpdateTodo).toHaveBeenCalled();
         (0, vitest_1.expect)(mockRateTodo).toHaveBeenCalledTimes(6);
     });
     (0, vitest_1.it)("skips seeding when data already exists", async () => {

@@ -1,15 +1,29 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { DashboardStatsBar } from "./DashboardStatsBar";
+
+afterEach(() => {
+  cleanup();
+});
+
+const baseTodoStats = {
+  total: 10,
+  open: 4,
+  done: 5,
+  cancelled: 1,
+  inProgress: 2,
+  overdue: 1,
+  highPriority: 2,
+  rated: 3,
+  averageRating: 4.2,
+};
 
 describe("DashboardStatsBar", () => {
   it("renders compact task stats for regular users", () => {
     render(
       <DashboardStatsBar
-        totalTodos={10}
-        pendingTodos={4}
-        completedTodos={6}
-        donePercent={60}
+        todoStats={baseTodoStats}
+        donePercent={50}
       />,
     );
 
@@ -17,8 +31,12 @@ describe("DashboardStatsBar", () => {
     expect(screen.getByText("10")).toBeInTheDocument();
     expect(screen.getByText("Open")).toBeInTheDocument();
     expect(screen.getByText("4")).toBeInTheDocument();
+    expect(screen.getByText("In Prog")).toBeInTheDocument();
+    expect(screen.getByText("Overdue")).toBeInTheDocument();
     expect(screen.getByText("Done %")).toBeInTheDocument();
-    expect(screen.getByText("60")).toBeInTheDocument();
+    expect(screen.getByText("50")).toBeInTheDocument();
+    expect(screen.getByText("Avg ★")).toBeInTheDocument();
+    expect(screen.getByText("4.2")).toBeInTheDocument();
     expect(screen.queryByText("Tasks")).not.toBeInTheDocument();
     expect(screen.queryByText("Prompts")).not.toBeInTheDocument();
   });
@@ -26,9 +44,12 @@ describe("DashboardStatsBar", () => {
   it("renders grouped task and prompt stats for admins", () => {
     render(
       <DashboardStatsBar
-        totalTodos={8}
-        pendingTodos={3}
-        completedTodos={5}
+        todoStats={{
+          ...baseTodoStats,
+          total: 8,
+          open: 3,
+          done: 4,
+        }}
         usersCount={2}
         jobStats={{
           total: 12,
@@ -45,8 +66,9 @@ describe("DashboardStatsBar", () => {
     expect(screen.getByText("Users")).toBeInTheDocument();
     expect(screen.getByText("Active")).toBeInTheDocument();
     expect(screen.getByText("Failed")).toBeInTheDocument();
-    expect(screen.getAllByText("2")).toHaveLength(2);
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByText("9")).toBeInTheDocument();
+    expect(screen.getByText("In Prog")).toBeInTheDocument();
+    expect(screen.getByText("High")).toBeInTheDocument();
   });
 });

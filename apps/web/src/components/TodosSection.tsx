@@ -20,7 +20,7 @@ import {
   TEXT_MUTED_CLASS,
   TEXT_SUBTLE_CLASS,
 } from "@/lib/theme-classes";
-import type { Todo } from "@/lib/types";
+import type { Todo, TodoPriority, TodoStatus } from "@/lib/types";
 
 interface TodosSectionProps {
   initialTodos: Todo[];
@@ -30,6 +30,36 @@ interface TodosSectionProps {
 }
 
 const RATING_VALUES = [1, 2, 3, 4, 5] as const;
+const PRIORITY_OPTIONS: TodoPriority[] = ["low", "medium", "high"];
+
+const PRIORITY_LABELS: Record<TodoPriority, string> = {
+  low: "Low",
+  medium: "Med",
+  high: "High",
+};
+
+const PRIORITY_CLASSES: Record<TodoPriority, string> = {
+  low: "bg-slate-100 text-slate-700 dark:bg-slate-800/70 dark:text-slate-300",
+  medium:
+    "bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300",
+  high: "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300",
+};
+
+const STATUS_LABELS: Record<TodoStatus, string> = {
+  todo: "To do",
+  in_progress: "In progress",
+  done: "Done",
+  cancelled: "Cancelled",
+};
+
+const STATUS_CLASSES: Record<TodoStatus, string> = {
+  todo: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800/70 dark:text-zinc-300",
+  in_progress:
+    "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300",
+  done: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300",
+  cancelled:
+    "bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300",
+};
 
 function formatAverageRating(average: number | null | undefined): string | null {
   if (average == null) {
@@ -37,6 +67,29 @@ function formatAverageRating(average: number | null | undefined): string | null 
   }
 
   return average.toFixed(1);
+}
+
+function formatDueDate(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function isOverdue(todo: Todo): boolean {
+  if (!todo.dueDate || todo.status === "done" || todo.status === "cancelled") {
+    return false;
+  }
+
+  return new Date(todo.dueDate).getTime() < Date.now();
+}
+
+function parseTagsInput(value: string): string[] {
+  return [...new Set(value.split(",").map((tag) => tag.trim()).filter(Boolean))];
 }
 
 export function TodosSection({
@@ -47,6 +100,9 @@ export function TodosSection({
 }: TodosSectionProps) {
   const [todos, setTodos] = useState(initialTodos);
   const [newTitle, setNewTitle] = useState("");
+  const [newPriority, setNewPriority] = useState<TodoPriority>("medium");
+  const [newDueDate, setNewDueDate] = useState("");
+  const [newTags, setNewTags] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -66,11 +122,25 @@ export function TodosSection({
     setSubmitting(true);
     setError(null);
 
+    const tags = parseTagsInput(newTags);
+    const payload: Record<string, unknown> = {
+      title,
+      priority: newPriority,
+    };
+
+    if (newDueDate) {
+      payload.dueDate = new Date(`${newDueDate}T12:00:00.000Z`).toISOString();
+    }
+
+    if (tags.length > 0) {
+      payload.tags = tags;
+    }
+
     try {
       const response = await fetch("/api/todos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify(payload),
       });
 
       const data = (await response.json()) as Todo | { error?: string };
@@ -83,6 +153,9 @@ export function TodosSection({
 
       setTodos((current) => [data as Todo, ...current]);
       setNewTitle("");
+      setNewPriority("medium");
+      setNewDueDate("");
+      setNewTags("");
     } catch (createError) {
       setError(
         createError instanceof Error
@@ -250,8 +323,31 @@ export function TodosSection({
     }
   }
 
-  const completedCount = todos.filter((todo) => todo.completed).length;
-  const pendingCount = todos.length - completedCount;
+  const openCount = todos.filter(
+    (todo) => todo.status !== "done" && todo.status !== "cancelled",
+  ).length;
+  const doneCount = todos.filter((todo) => todo.status === "done").length;
+  const inProgressCount = todos.filter(
+    (todo) => todo.status === "in_progress",
+  ).length;
+  const overdueCount = todos.filter((todo) => isOverdue(todo)).length;
+  const highPriorityCount = todos.filter(
+    (todo) =>
+      todo.priority === "high" &&
+      todo.status !== "done" &&
+      todo.status !== "cancelled",
+  ).length;
+
+  const summaryParts = [`${openCount} open`, `${doneCount} done`];
+  if (inProgressCount > 0) {
+    summaryParts.push(`${inProgressCount} in progress`);
+  }
+  if (overdueCount > 0) {
+    summaryParts.push(`${overdueCount} overdue`);
+  }
+  if (highPriorityCount > 0) {
+    summaryParts.push(`${highPriorityCount} high`);
+  }
 
   return (
     <section
@@ -289,11 +385,11 @@ export function TodosSection({
           </h2>
           {!isCompact ? (
             <p className={`mt-1 ${TEXT_MUTED_CLASS}`}>
-              Tasks stored in the app database.
+              Tasks with priority, due dates, status, and tags.
             </p>
           ) : (
             <p className={`text-xs ${TEXT_SUBTLE_CLASS}`}>
-              {pendingCount} open · {completedCount} done
+              {summaryParts.join(" · ")}
             </p>
           )}
         </div>
@@ -310,33 +406,72 @@ export function TodosSection({
           onSubmit={handleCreate}
           className={
             isCompact
-              ? `flex shrink-0 gap-2 ${useFixedPanelHeight ? "mb-2" : "mb-3"}`
-              : "mb-6 flex gap-3"
+              ? `flex shrink-0 flex-col gap-2 ${useFixedPanelHeight ? "mb-2" : "mb-3"}`
+              : "mb-6 space-y-3"
           }
         >
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(event) => setNewTitle(event.target.value)}
-            placeholder="Add a todo..."
+          <div className={isCompact ? "flex gap-2" : "flex gap-3"}>
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(event) => setNewTitle(event.target.value)}
+              placeholder="Add a todo..."
+              className={
+                isCompact
+                  ? `min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`
+                  : `flex-1 ${INPUT_DEFAULT_CLASS}`
+              }
+              aria-label="New todo title"
+            />
+            <button
+              type="submit"
+              disabled={submitting || !newTitle.trim()}
+              className={
+                isCompact
+                  ? "shrink-0 rounded-lg brand-gradient-bg px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  : "rounded-xl brand-gradient-bg px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-indigo-300/40 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              }
+            >
+              {submitting ? "..." : "Add"}
+            </button>
+          </div>
+          <div
             className={
               isCompact
-                ? `min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`
-                : `flex-1 ${INPUT_DEFAULT_CLASS}`
-            }
-            aria-label="New todo title"
-          />
-          <button
-            type="submit"
-            disabled={submitting || !newTitle.trim()}
-            className={
-              isCompact
-                ? "shrink-0 rounded-lg brand-gradient-bg px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                : "rounded-xl brand-gradient-bg px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-indigo-300/40 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                ? "grid grid-cols-3 gap-2"
+                : "grid gap-3 sm:grid-cols-3"
             }
           >
-            {submitting ? "..." : "Add"}
-          </button>
+            <select
+              value={newPriority}
+              onChange={(event) =>
+                setNewPriority(event.target.value as TodoPriority)
+              }
+              className={isCompact ? INPUT_COMPACT_CLASS : INPUT_DEFAULT_CLASS}
+              aria-label="New todo priority"
+            >
+              {PRIORITY_OPTIONS.map((priority) => (
+                <option key={priority} value={priority}>
+                  {PRIORITY_LABELS[priority]} priority
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={newDueDate}
+              onChange={(event) => setNewDueDate(event.target.value)}
+              className={isCompact ? INPUT_COMPACT_CLASS : INPUT_DEFAULT_CLASS}
+              aria-label="New todo due date"
+            />
+            <input
+              type="text"
+              value={newTags}
+              onChange={(event) => setNewTags(event.target.value)}
+              placeholder="Tags (comma-separated)"
+              className={isCompact ? INPUT_COMPACT_CLASS : INPUT_DEFAULT_CLASS}
+              aria-label="New todo tags"
+            />
+          </div>
         </form>
 
         {error ? (
@@ -385,42 +520,85 @@ export function TodosSection({
               isCompact ? "space-y-1" : "space-y-2"
             }
           >
-            {todos.map((todo) => (
+            {todos.map((todo) => {
+              const dueLabel = formatDueDate(todo.dueDate);
+              const overdue = isOverdue(todo);
+
+              return (
               <li
                 key={todo.id}
                 className={`${LIST_ITEM_CLASS} ${
-                  isCompact ? "px-2.5 py-1.5" : "justify-between gap-4 px-4 py-3"
+                  isCompact
+                    ? "flex-col items-stretch gap-1.5 px-2.5 py-1.5"
+                    : "justify-between gap-4 px-4 py-3"
                 } ${todo.completed ? "opacity-70" : ""}`}
               >
-                <div className="flex min-w-0 flex-1 items-center gap-2">
+                <div className="flex min-w-0 flex-1 items-start gap-2">
                   <input
                     type="checkbox"
                     checked={todo.completed}
                     onChange={() => void handleToggle(todo)}
-                    className="h-3.5 w-3.5 shrink-0 rounded border-border text-brand-from focus:ring-brand-via"
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-border text-brand-from focus:ring-brand-via"
                     aria-label={`Mark "${todo.title}" as ${todo.completed ? "incomplete" : "complete"}`}
                   />
-                  {editingId === todo.id ? (
-                    <input
-                      type="text"
-                      value={editTitle}
-                      onChange={(event) => setEditTitle(event.target.value)}
-                      className={`min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`}
-                      aria-label="Edit todo title"
-                    />
-                  ) : (
-                    <span
-                      className={`truncate ${
-                        isCompact ? "text-xs" : "text-sm"
-                      } ${
-                        todo.completed
-                          ? "text-emerald-600 line-through decoration-emerald-400 dark:text-emerald-400 dark:decoration-emerald-600"
-                          : `font-medium ${TEXT_HEADING_CLASS}`
+                  <div className="min-w-0 flex-1">
+                    {editingId === todo.id ? (
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(event) => setEditTitle(event.target.value)}
+                        className={`min-w-0 w-full ${INPUT_COMPACT_CLASS}`}
+                        aria-label="Edit todo title"
+                      />
+                    ) : (
+                      <span
+                        className={`block truncate ${
+                          isCompact ? "text-xs" : "text-sm"
+                        } ${
+                          todo.completed
+                            ? "text-emerald-600 line-through decoration-emerald-400 dark:text-emerald-400 dark:decoration-emerald-600"
+                            : `font-medium ${TEXT_HEADING_CLASS}`
+                        }`}
+                      >
+                        {todo.title}
+                      </span>
+                    )}
+                    <div
+                      className={`mt-1 flex flex-wrap items-center gap-1 ${
+                        isCompact ? "text-[10px]" : "text-[11px]"
                       }`}
                     >
-                      {todo.title}
-                    </span>
-                  )}
+                      <span
+                        className={`rounded px-1.5 py-0.5 font-medium ${PRIORITY_CLASSES[todo.priority]}`}
+                      >
+                        {PRIORITY_LABELS[todo.priority]}
+                      </span>
+                      <span
+                        className={`rounded px-1.5 py-0.5 font-medium ${STATUS_CLASSES[todo.status]}`}
+                      >
+                        {STATUS_LABELS[todo.status]}
+                      </span>
+                      {dueLabel ? (
+                        <span
+                          className={`rounded px-1.5 py-0.5 font-medium ${
+                            overdue
+                              ? "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300"
+                              : "bg-surface-muted text-muted"
+                          }`}
+                        >
+                          {overdue ? "Overdue" : "Due"} {dueLabel}
+                        </span>
+                      ) : null}
+                      {todo.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded bg-violet-100 px-1.5 py-0.5 font-medium text-violet-700 dark:bg-violet-950/60 dark:text-violet-300"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center">
@@ -513,7 +691,8 @@ export function TodosSection({
                   </div>
                 </div>
               </li>
-            ))}
+            );
+            })}
           </ul>
         )}
         </div>
