@@ -1,14 +1,33 @@
 export type JobStatus = "queued" | "running" | "done" | "failed";
 
+export type TodoPriority = "low" | "medium" | "high";
+export type TodoStatus = "todo" | "in_progress" | "done" | "cancelled";
+
 export interface TodoDto {
   id: string;
   title: string;
   completed: boolean;
+  priority: TodoPriority;
+  status: TodoStatus;
+  dueDate: string | null;
+  tags: string[];
   createdAt: string;
   updatedAt: string;
   averageRating?: number | null;
   ratingCount?: number;
   myRating?: number | null;
+}
+
+export interface TodoStatsDto {
+  total: number;
+  open: number;
+  done: number;
+  cancelled: number;
+  inProgress: number;
+  overdue: number;
+  highPriority: number;
+  rated: number;
+  averageRating: number | null;
 }
 
 export interface TodoRatingDto {

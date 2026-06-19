@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import type { AuthSession, Job, JobStats, Todo, User, UserRole } from "./types";
+import type { AuthSession, Job, JobStats, Todo, TodoStats, User, UserRole } from "./types";
 import { getApiUrl } from "./api-url";
 
 export async function getSession(): Promise<AuthSession | null> {
@@ -101,6 +101,21 @@ export async function listJobs(options: ListJobsOptions = {}): Promise<Job[]> {
 
   const data = (await response.json()) as { jobs: Job[] };
   return data.jobs;
+}
+
+export async function getTodoStats(): Promise<TodoStats> {
+  const cookieStore = await cookies();
+  const response = await fetch(`${getApiUrl()}/api/todos/stats`, {
+    headers: { cookie: cookieStore.toString() },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch todo stats");
+  }
+
+  const data = (await response.json()) as { stats: TodoStats };
+  return data.stats;
 }
 
 export async function getJobStats(): Promise<JobStats> {

@@ -9,6 +9,10 @@ export function toTodoDto(todo: Todo): TodoDto {
     id: todo.id,
     title: todo.title,
     completed: todo.completed,
+    priority: todo.priority,
+    status: todo.status,
+    dueDate: todo.dueDate ? todo.dueDate.toISOString() : null,
+    tags: todo.tags ?? [],
     createdAt: todo.createdAt.toISOString(),
     updatedAt: todo.updatedAt.toISOString(),
   };

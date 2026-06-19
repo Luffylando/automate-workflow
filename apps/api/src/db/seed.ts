@@ -3,7 +3,8 @@ import { getDataSource } from "./data-source";
 import { Todo } from "./entities/Todo";
 import { TodoRating } from "./entities/TodoRating";
 import { User } from "./entities/User";
-import { createTodo, updateTodo } from "../services/todos";
+import { createTodo } from "../services/todos";
+import type { CreateTodoInput } from "../services/todos";
 import { rateTodo } from "../services/todo-ratings";
 import { createUser } from "../services/users";
 
@@ -37,21 +38,74 @@ const SEED_USERS = [
   },
 ];
 
-const SEED_TODOS = [
-  { title: "Review dashboard layout", completed: false },
-  { title: "Ship user management UI", completed: true },
-  { title: "Add rating stars to todo cards", completed: false },
-  { title: "Polish dark mode contrast on stat cards", completed: true },
-  { title: "Write API integration tests", completed: false },
+const SEED_TODOS: CreateTodoInput[] = [
+  {
+    title: "Review dashboard layout",
+    priority: "high",
+    status: "in_progress",
+    dueDate: "2026-06-25T17:00:00.000Z",
+    tags: ["design", "dashboard"],
+  },
+  {
+    title: "Ship user management UI",
+    priority: "medium",
+    status: "done",
+    dueDate: "2026-06-10T17:00:00.000Z",
+    tags: ["frontend", "users"],
+  },
+  {
+    title: "Add rating stars to todo cards",
+    priority: "medium",
+    status: "todo",
+    dueDate: "2026-06-28T17:00:00.000Z",
+    tags: ["frontend", "todos"],
+  },
+  {
+    title: "Polish dark mode contrast on stat cards",
+    priority: "low",
+    status: "done",
+    tags: ["design", "accessibility"],
+  },
+  {
+    title: "Write API integration tests",
+    priority: "high",
+    status: "todo",
+    dueDate: "2026-06-01T17:00:00.000Z",
+    tags: ["testing", "api"],
+  },
   {
     title:
       "Document the onboarding flow for new team members joining the automate-workflow project",
-    completed: false,
+    priority: "medium",
+    status: "in_progress",
+    dueDate: "2026-07-05T17:00:00.000Z",
+    tags: ["docs"],
   },
-  { title: "Set up CI smoke tests", completed: true },
-  { title: "Refine compact todo panel spacing", completed: false },
-  { title: "Add empty-state illustrations", completed: false },
-  { title: "Test mobile dashboard breakpoints", completed: true },
+  {
+    title: "Set up CI smoke tests",
+    priority: "high",
+    status: "done",
+    tags: ["ci", "testing"],
+  },
+  {
+    title: "Refine compact todo panel spacing",
+    priority: "low",
+    status: "todo",
+    tags: ["ui"],
+  },
+  {
+    title: "Add empty-state illustrations",
+    priority: "medium",
+    status: "todo",
+    dueDate: "2026-07-12T17:00:00.000Z",
+    tags: ["design"],
+  },
+  {
+    title: "Test mobile dashboard breakpoints",
+    priority: "medium",
+    status: "done",
+    tags: ["frontend", "responsive"],
+  },
 ];
 
 const SEED_RATINGS: Array<{
@@ -94,10 +148,7 @@ export async function seedDemoData(): Promise<void> {
 
   if ((await todoRepo.count()) === 0) {
     for (const seedTodo of SEED_TODOS) {
-      const todo = await createTodo(seedTodo.title);
-      if (seedTodo.completed) {
-        await updateTodo(todo.id, { completed: true });
-      }
+      await createTodo(seedTodo);
     }
   }
 
