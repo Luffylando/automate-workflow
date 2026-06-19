@@ -4,9 +4,13 @@ const vitest_1 = require("vitest");
 const mappers_1 = require("./mappers");
 (0, vitest_1.describe)("mappers", () => {
     (0, vitest_1.it)("maps a todo entity to dto", () => {
+        const dueDate = new Date("2026-06-20T17:00:00.000Z");
         const todo = {
             id: "todo-1",
             title: "Write tests",
+            description: "Cover mapper output",
+            priority: "high",
+            dueDate,
             completed: false,
             createdAt: new Date("2026-06-10T10:00:00.000Z"),
             updatedAt: new Date("2026-06-10T10:05:00.000Z"),
@@ -14,6 +18,9 @@ const mappers_1 = require("./mappers");
         (0, vitest_1.expect)((0, mappers_1.toTodoDto)(todo)).toEqual({
             id: "todo-1",
             title: "Write tests",
+            description: "Cover mapper output",
+            priority: "high",
+            dueDate: dueDate.toISOString(),
             completed: false,
             createdAt: "2026-06-10T10:00:00.000Z",
             updatedAt: "2026-06-10T10:05:00.000Z",

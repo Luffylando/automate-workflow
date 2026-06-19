@@ -1,5 +1,17 @@
 export type JobStatus = "queued" | "running" | "done" | "failed";
 
+export type TodoPriority = "low" | "medium" | "high";
+
+export interface TodoStats {
+  total: number;
+  open: number;
+  completed: number;
+  overdue: number;
+  highPriority: number;
+  averageRating: number | null;
+  byPriority: Record<TodoPriority, number>;
+}
+
 export interface JobStats {
   total: number;
   queued: number;
@@ -26,6 +38,9 @@ export interface Job {
 export interface Todo {
   id: string;
   title: string;
+  description: string | null;
+  priority: TodoPriority;
+  dueDate: string | null;
   completed: boolean;
   createdAt: string;
   updatedAt: string;

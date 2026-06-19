@@ -14,6 +14,9 @@ const typeorm_1 = require("typeorm");
 let Todo = class Todo {
     id;
     title;
+    description;
+    priority;
+    dueDate;
     completed;
     createdAt;
     updatedAt;
@@ -27,6 +30,18 @@ __decorate([
     (0, typeorm_1.Column)({ type: "varchar", length: 500 }),
     __metadata("design:type", String)
 ], Todo.prototype, "title", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    __metadata("design:type", Object)
+], Todo.prototype, "description", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "varchar", length: 10, default: "medium" }),
+    __metadata("design:type", String)
+], Todo.prototype, "priority", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "timestamptz", nullable: true }),
+    __metadata("design:type", Object)
+], Todo.prototype, "dueDate", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: "boolean", default: false }),
     __metadata("design:type", Boolean)

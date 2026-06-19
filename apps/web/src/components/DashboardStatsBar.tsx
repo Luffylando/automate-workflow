@@ -1,15 +1,21 @@
-import type { JobStats } from "@/lib/types";
+import type { JobStats, TodoStats } from "@/lib/types";
 
 export interface DashboardStatsBarProps {
-  totalTodos: number;
-  pendingTodos: number;
-  completedTodos: number;
+  todoStats: TodoStats;
   usersCount?: number;
   donePercent?: number;
   jobStats?: JobStats | null;
 }
 
-function InlineStat({ label, value }: { label: string; value: number }) {
+function InlineStat({
+  label,
+  value,
+  suffix,
+}: {
+  label: string;
+  value: number | string;
+  suffix?: string;
+}) {
   return (
     <span className="inline-flex items-baseline gap-1">
       <span className="text-[10px] font-medium uppercase tracking-wide text-muted">
@@ -17,6 +23,9 @@ function InlineStat({ label, value }: { label: string; value: number }) {
       </span>
       <span className="text-sm font-semibold tabular-nums text-foreground">
         {value}
+        {suffix ? (
+          <span className="text-[10px] font-medium text-muted">{suffix}</span>
+        ) : null}
       </span>
     </span>
   );
@@ -36,10 +45,16 @@ function GroupLabel({ children }: { children: string }) {
   );
 }
 
+function formatAverageRating(value: number | null): string {
+  if (value == null) {
+    return "—";
+  }
+
+  return value.toFixed(1);
+}
+
 export function DashboardStatsBar({
-  totalTodos,
-  pendingTodos,
-  completedTodos,
+  todoStats,
   usersCount,
   donePercent,
   jobStats,
@@ -50,9 +65,16 @@ export function DashboardStatsBar({
   return (
     <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border bg-surface/60 px-2.5 py-1.5">
       {showGroups ? <GroupLabel>Tasks</GroupLabel> : null}
-      <InlineStat label="Total" value={totalTodos} />
-      <InlineStat label="Open" value={pendingTodos} />
-      <InlineStat label="Done" value={completedTodos} />
+      <InlineStat label="Total" value={todoStats.total} />
+      <InlineStat label="Open" value={todoStats.open} />
+      <InlineStat label="Done" value={todoStats.completed} />
+      <InlineStat label="Overdue" value={todoStats.overdue} />
+      <InlineStat label="High" value={todoStats.highPriority} />
+      <InlineStat
+        label="Avg"
+        value={formatAverageRating(todoStats.averageRating)}
+        suffix="★"
+      />
       {usersCount !== undefined ? (
         <InlineStat label="Users" value={usersCount} />
       ) : donePercent !== undefined ? (

@@ -61,9 +61,9 @@ describe("seedDemoData", () => {
     mockTodoCount.mockResolvedValue(0);
     mockRatingCount.mockResolvedValue(0);
     mockCreateUser.mockResolvedValue({ id: "user-id" });
-    mockCreateTodo.mockImplementation(async (title: string) => ({
-      id: `todo-${title}`,
-      title,
+    mockCreateTodo.mockImplementation(async (input: { title: string }) => ({
+      id: `todo-${input.title}`,
+      title: input.title,
       completed: false,
     }));
     mockUpdateTodo.mockResolvedValue(null);

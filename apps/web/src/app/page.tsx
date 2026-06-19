@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DashboardStatsBar } from "@/components/DashboardStatsBar";
 import { LogoutButton } from "@/components/LogoutButton";
 import { PoweredByPromptsFooter } from "@/components/PoweredByPromptsFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -9,10 +10,18 @@ import {
   TEXT_HEADING_CLASS,
   TEXT_MUTED_CLASS,
 } from "@/lib/theme-classes";
-import { getSession, listTodos } from "@/lib/server-api";
+import { getSession, getTodoStats, listTodos } from "@/lib/server-api";
 
 export default async function Home() {
-  const [session, todos] = await Promise.all([getSession(), listTodos()]);
+  const [session, todos, todoStats] = await Promise.all([
+    getSession(),
+    listTodos(),
+    getTodoStats(),
+  ]);
+
+  const donePercent = todoStats.total
+    ? Math.round((todoStats.completed / todoStats.total) * 100)
+    : 0;
 
   return (
     <div className="page-gradient flex min-h-full flex-1 flex-col">
@@ -46,6 +55,7 @@ export default async function Home() {
       </header>
 
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-5 py-10">
+        <DashboardStatsBar todoStats={todoStats} donePercent={donePercent} />
         <TodosSection
           initialTodos={todos}
           variant="compact"

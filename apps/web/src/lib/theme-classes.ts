@@ -73,6 +73,13 @@ export const STATUS_BADGE_CLASSES = {
     "border-red-400 bg-red-50 text-red-800 ring-2 ring-red-200 dark:border-red-600/50 dark:bg-red-950/50 dark:text-red-300 dark:ring-red-800/50",
 } as const;
 
+export const PRIORITY_BADGE_CLASSES = {
+  low: "border-slate-300 bg-slate-50 text-slate-700 ring-1 ring-slate-200 dark:border-slate-600/50 dark:bg-slate-900/50 dark:text-slate-300 dark:ring-slate-700/50",
+  medium:
+    "border-indigo-300 bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200 dark:border-indigo-600/50 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-800/50",
+  high: "border-rose-400 bg-rose-50 text-rose-800 ring-1 ring-rose-200 dark:border-rose-600/50 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/50",
+} as const;
+
 export const JOB_PANEL_CLASSES = {
   queued:
     "border-amber-200 bg-amber-50/50 ring-1 ring-amber-100 dark:border-amber-700/50 dark:bg-amber-950/40 dark:ring-amber-900/50",

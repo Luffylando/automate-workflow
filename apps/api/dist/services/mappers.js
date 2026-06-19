@@ -8,6 +8,9 @@ function toTodoDto(todo) {
     return {
         id: todo.id,
         title: todo.title,
+        description: todo.description,
+        priority: todo.priority,
+        dueDate: todo.dueDate ? todo.dueDate.toISOString() : null,
         completed: todo.completed,
         createdAt: todo.createdAt.toISOString(),
         updatedAt: todo.updatedAt.toISOString(),

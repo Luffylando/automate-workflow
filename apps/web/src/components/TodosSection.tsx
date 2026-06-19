@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { TodoPriorityBadge } from "@/components/TodoPriorityBadge";
 import {
   DASHBOARD_PANEL_HEIGHT_CLASS,
   DASHBOARD_SCROLL_AREA_CLASS,
@@ -20,7 +21,7 @@ import {
   TEXT_MUTED_CLASS,
   TEXT_SUBTLE_CLASS,
 } from "@/lib/theme-classes";
-import type { Todo } from "@/lib/types";
+import type { Todo, TodoPriority } from "@/lib/types";
 
 interface TodosSectionProps {
   initialTodos: Todo[];
@@ -30,6 +31,7 @@ interface TodosSectionProps {
 }
 
 const RATING_VALUES = [1, 2, 3, 4, 5] as const;
+const PRIORITY_OPTIONS: TodoPriority[] = ["low", "medium", "high"];
 
 function formatAverageRating(average: number | null | undefined): string | null {
   if (average == null) {
@@ -37,6 +39,42 @@ function formatAverageRating(average: number | null | undefined): string | null 
   }
 
   return average.toFixed(1);
+}
+
+function isOverdue(todo: Todo): boolean {
+  if (todo.completed || !todo.dueDate) {
+    return false;
+  }
+
+  return new Date(todo.dueDate).getTime() < Date.now();
+}
+
+function formatDueDate(value: string): string {
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function buildCompactSummary(todos: Todo[]): string {
+  const completedCount = todos.filter((todo) => todo.completed).length;
+  const pendingCount = todos.length - completedCount;
+  const overdueCount = todos.filter(isOverdue).length;
+  const highPriorityCount = todos.filter(
+    (todo) => !todo.completed && todo.priority === "high",
+  ).length;
+
+  const parts = [`${pendingCount} open`, `${completedCount} done`];
+
+  if (overdueCount > 0) {
+    parts.push(`${overdueCount} overdue`);
+  }
+
+  if (highPriorityCount > 0) {
+    parts.push(`${highPriorityCount} high`);
+  }
+
+  return parts.join(" · ");
 }
 
 export function TodosSection({
@@ -47,6 +85,9 @@ export function TodosSection({
 }: TodosSectionProps) {
   const [todos, setTodos] = useState(initialTodos);
   const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newPriority, setNewPriority] = useState<TodoPriority>("medium");
+  const [newDueDate, setNewDueDate] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -66,11 +107,30 @@ export function TodosSection({
     setSubmitting(true);
     setError(null);
 
+    const body: {
+      title: string;
+      description?: string | null;
+      priority: TodoPriority;
+      dueDate?: string | null;
+    } = {
+      title,
+      priority: newPriority,
+    };
+
+    const description = newDescription.trim();
+    if (description) {
+      body.description = description;
+    }
+
+    if (newDueDate) {
+      body.dueDate = new Date(`${newDueDate}T12:00:00.000Z`).toISOString();
+    }
+
     try {
       const response = await fetch("/api/todos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify(body),
       });
 
       const data = (await response.json()) as Todo | { error?: string };
@@ -83,6 +143,9 @@ export function TodosSection({
 
       setTodos((current) => [data as Todo, ...current]);
       setNewTitle("");
+      setNewDescription("");
+      setNewPriority("medium");
+      setNewDueDate("");
     } catch (createError) {
       setError(
         createError instanceof Error
@@ -250,9 +313,6 @@ export function TodosSection({
     }
   }
 
-  const completedCount = todos.filter((todo) => todo.completed).length;
-  const pendingCount = todos.length - completedCount;
-
   return (
     <section
       className={
@@ -289,11 +349,11 @@ export function TodosSection({
           </h2>
           {!isCompact ? (
             <p className={`mt-1 ${TEXT_MUTED_CLASS}`}>
-              Tasks stored in the app database.
+              Tasks with priority, due dates, and optional descriptions.
             </p>
           ) : (
             <p className={`text-xs ${TEXT_SUBTLE_CLASS}`}>
-              {pendingCount} open · {completedCount} done
+              {buildCompactSummary(todos)}
             </p>
           )}
         </div>
@@ -310,33 +370,80 @@ export function TodosSection({
           onSubmit={handleCreate}
           className={
             isCompact
-              ? `flex shrink-0 gap-2 ${useFixedPanelHeight ? "mb-2" : "mb-3"}`
-              : "mb-6 flex gap-3"
+              ? `flex shrink-0 flex-col gap-2 ${useFixedPanelHeight ? "mb-2" : "mb-3"}`
+              : "mb-6 flex flex-col gap-3"
           }
         >
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(event) => setNewTitle(event.target.value)}
-            placeholder="Add a todo..."
+          <div className={isCompact ? "flex gap-2" : "flex gap-3"}>
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(event) => setNewTitle(event.target.value)}
+              placeholder="Add a todo..."
+              className={
+                isCompact
+                  ? `min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`
+                  : `flex-1 ${INPUT_DEFAULT_CLASS}`
+              }
+              aria-label="New todo title"
+            />
+            <button
+              type="submit"
+              disabled={submitting || !newTitle.trim()}
+              className={
+                isCompact
+                  ? "shrink-0 rounded-lg brand-gradient-bg px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  : "rounded-xl brand-gradient-bg px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-indigo-300/40 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              }
+            >
+              {submitting ? "..." : "Add"}
+            </button>
+          </div>
+          <div
             className={
               isCompact
-                ? `min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`
-                : `flex-1 ${INPUT_DEFAULT_CLASS}`
-            }
-            aria-label="New todo title"
-          />
-          <button
-            type="submit"
-            disabled={submitting || !newTitle.trim()}
-            className={
-              isCompact
-                ? "shrink-0 rounded-lg brand-gradient-bg px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                : "rounded-xl brand-gradient-bg px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-indigo-300/40 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                ? "grid grid-cols-2 gap-2 sm:grid-cols-3"
+                : "grid gap-2 sm:grid-cols-3"
             }
           >
-            {submitting ? "..." : "Add"}
-          </button>
+            <input
+              type="text"
+              value={newDescription}
+              onChange={(event) => setNewDescription(event.target.value)}
+              placeholder="Description (optional)"
+              className={
+                isCompact
+                  ? `col-span-2 sm:col-span-1 ${INPUT_COMPACT_CLASS}`
+                  : `sm:col-span-1 ${INPUT_DEFAULT_CLASS}`
+              }
+              aria-label="New todo description"
+            />
+            <select
+              value={newPriority}
+              onChange={(event) =>
+                setNewPriority(event.target.value as TodoPriority)
+              }
+              className={
+                isCompact ? INPUT_COMPACT_CLASS : INPUT_DEFAULT_CLASS
+              }
+              aria-label="New todo priority"
+            >
+              {PRIORITY_OPTIONS.map((priority) => (
+                <option key={priority} value={priority}>
+                  {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={newDueDate}
+              onChange={(event) => setNewDueDate(event.target.value)}
+              className={
+                isCompact ? INPUT_COMPACT_CLASS : INPUT_DEFAULT_CLASS
+              }
+              aria-label="New todo due date"
+            />
+          </div>
         </form>
 
         {error ? (
@@ -389,38 +496,64 @@ export function TodosSection({
               <li
                 key={todo.id}
                 className={`${LIST_ITEM_CLASS} ${
-                  isCompact ? "px-2.5 py-1.5" : "justify-between gap-4 px-4 py-3"
+                  isCompact ? "px-2.5 py-2" : "justify-between gap-4 px-4 py-3"
                 } ${todo.completed ? "opacity-70" : ""}`}
               >
-                <div className="flex min-w-0 flex-1 items-center gap-2">
+                <div className="flex min-w-0 flex-1 items-start gap-2">
                   <input
                     type="checkbox"
                     checked={todo.completed}
                     onChange={() => void handleToggle(todo)}
-                    className="h-3.5 w-3.5 shrink-0 rounded border-border text-brand-from focus:ring-brand-via"
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded border-border text-brand-from focus:ring-brand-via"
                     aria-label={`Mark "${todo.title}" as ${todo.completed ? "incomplete" : "complete"}`}
                   />
-                  {editingId === todo.id ? (
-                    <input
-                      type="text"
-                      value={editTitle}
-                      onChange={(event) => setEditTitle(event.target.value)}
-                      className={`min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`}
-                      aria-label="Edit todo title"
-                    />
-                  ) : (
-                    <span
-                      className={`truncate ${
-                        isCompact ? "text-xs" : "text-sm"
-                      } ${
-                        todo.completed
-                          ? "text-emerald-600 line-through decoration-emerald-400 dark:text-emerald-400 dark:decoration-emerald-600"
-                          : `font-medium ${TEXT_HEADING_CLASS}`
-                      }`}
-                    >
-                      {todo.title}
-                    </span>
-                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {editingId === todo.id ? (
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(event) => setEditTitle(event.target.value)}
+                          className={`min-w-0 flex-1 ${INPUT_COMPACT_CLASS}`}
+                          aria-label="Edit todo title"
+                        />
+                      ) : (
+                        <span
+                          className={`truncate ${
+                            isCompact ? "text-xs" : "text-sm"
+                          } ${
+                            todo.completed
+                              ? "text-emerald-600 line-through decoration-emerald-400 dark:text-emerald-400 dark:decoration-emerald-600"
+                              : `font-medium ${TEXT_HEADING_CLASS}`
+                          }`}
+                        >
+                          {todo.title}
+                        </span>
+                      )}
+                      <TodoPriorityBadge priority={todo.priority} compact />
+                      {todo.dueDate ? (
+                        <span
+                          className={`text-[10px] font-medium tabular-nums ${
+                            isOverdue(todo)
+                              ? "text-rose-600 dark:text-rose-400"
+                              : TEXT_SUBTLE_CLASS
+                          }`}
+                        >
+                          Due {formatDueDate(todo.dueDate)}
+                          {isOverdue(todo) ? " · overdue" : ""}
+                        </span>
+                      ) : null}
+                    </div>
+                    {todo.description ? (
+                      <p
+                        className={`mt-0.5 line-clamp-2 ${
+                          isCompact ? "text-[10px]" : "text-xs"
+                        } ${TEXT_MUTED_CLASS}`}
+                      >
+                        {todo.description}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
 
                 <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center">

@@ -4,7 +4,19 @@ import {
   DASHBOARD_PANEL_HEIGHT_CLASS,
   DASHBOARD_SCROLL_AREA_CLASS,
 } from "@/lib/dashboard-layout";
+import type { Todo } from "@/lib/types";
 import { TodosSection } from "./TodosSection";
+
+const baseTodo: Todo = {
+  id: "1",
+  title: "Write tests",
+  description: "Cover todo UI behavior",
+  priority: "medium",
+  dueDate: "2020-01-01T17:00:00.000Z",
+  completed: false,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+};
 
 afterEach(() => {
   cleanup();
@@ -12,23 +24,14 @@ afterEach(() => {
 });
 
 describe("TodosSection", () => {
-  it("renders todos", () => {
-    render(
-      <TodosSection
-        initialTodos={[
-          {
-            id: "1",
-            title: "Write tests",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-          },
-        ]}
-      />,
-    );
+  it("renders todos with priority and description", () => {
+    render(<TodosSection initialTodos={[baseTodo]} />);
 
     expect(screen.getByRole("heading", { name: "Todos" })).toBeInTheDocument();
     expect(screen.getByText("Write tests")).toBeInTheDocument();
+    expect(screen.getByText("Cover todo UI behavior")).toBeInTheDocument();
+    expect(screen.getByText("Medium", { selector: "span" })).toBeInTheDocument();
+    expect(screen.getByText(/Due Jan/)).toBeInTheDocument();
   });
 
   it("shows a message when there are no todos", () => {
@@ -42,15 +45,7 @@ describe("TodosSection", () => {
       <TodosSection
         variant="compact"
         fixedHeight
-        initialTodos={[
-          {
-            id: "1",
-            title: "Scrollable task",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-          },
-        ]}
+        initialTodos={[baseTodo]}
       />,
     );
 
@@ -64,30 +59,24 @@ describe("TodosSection", () => {
     }
   });
 
-  it("renders compact variant with open and done counts", () => {
+  it("renders compact variant with open, done, and overdue counts", () => {
     render(
       <TodosSection
         variant="compact"
         initialTodos={[
+          baseTodo,
           {
-            id: "1",
-            title: "Open task",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
-          },
-          {
+            ...baseTodo,
             id: "2",
             title: "Done task",
             completed: true,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
+            dueDate: "2020-01-01T00:00:00.000Z",
           },
         ]}
       />,
     );
 
-    expect(screen.getByText("1 open · 1 done")).toBeInTheDocument();
+    expect(screen.getByText("1 open · 1 done · 1 overdue")).toBeInTheDocument();
   });
 
   it("rates a todo when rating is enabled", async () => {
@@ -102,11 +91,7 @@ describe("TodosSection", () => {
         canRate
         initialTodos={[
           {
-            id: "1",
-            title: "Write tests",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
+            ...baseTodo,
             averageRating: null,
             ratingCount: 0,
             myRating: null,
@@ -142,11 +127,7 @@ describe("TodosSection", () => {
         canRate
         initialTodos={[
           {
-            id: "1",
-            title: "Write tests",
-            completed: false,
-            createdAt: "2026-01-01T00:00:00.000Z",
-            updatedAt: "2026-01-01T00:00:00.000Z",
+            ...baseTodo,
             myRating: null,
           },
         ]}
@@ -164,12 +145,15 @@ describe("TodosSection", () => {
     });
   });
 
-  it("creates a todo through the API", async () => {
+  it("creates a todo with priority and description through the API", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         id: "2",
         title: "Ship feature",
+        description: "Launch the new todo fields",
+        priority: "high",
+        dueDate: "2026-07-01T12:00:00.000Z",
         completed: false,
         createdAt: "2026-01-02T00:00:00.000Z",
         updatedAt: "2026-01-02T00:00:00.000Z",
@@ -182,15 +166,38 @@ describe("TodosSection", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "New todo title" }), {
       target: { value: "Ship feature" },
     });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "New todo description" }),
+      {
+        target: { value: "Launch the new todo fields" },
+      },
+    );
+    fireEvent.change(screen.getByRole("combobox", { name: "New todo priority" }), {
+      target: { value: "high" },
+    });
+    fireEvent.change(screen.getByLabelText("New todo due date"), {
+      target: { value: "2026-07-01" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith("/api/todos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "Ship feature" }),
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, options] = fetchMock.mock.calls[0] as [
+        string,
+        { method: string; headers: Record<string, string>; body: string },
+      ];
+      expect(url).toBe("/api/todos");
+      expect(options.method).toBe("POST");
+      expect(options.headers).toEqual({ "Content-Type": "application/json" });
+      expect(JSON.parse(options.body)).toEqual({
+        title: "Ship feature",
+        description: "Launch the new todo fields",
+        priority: "high",
+        dueDate: "2026-07-01T12:00:00.000Z",
       });
       expect(screen.getByText("Ship feature")).toBeInTheDocument();
+      expect(screen.getByText("Launch the new todo fields")).toBeInTheDocument();
+      expect(screen.getByText("High", { selector: "span" })).toBeInTheDocument();
     });
   });
 });
